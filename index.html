@@ -843,6 +843,69 @@
       font-size: 0.95rem; font-weight: 700; color: var(--text-pri);
       margin-bottom: 14px; line-height: 1.4;
     }
+
+    /* ── RESPONSIVE MOBILE ──────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      /* Nav: scroll horizontal en lugar de wrap */
+      nav {
+        padding: 0 12px;
+        gap: 4px;
+        height: auto;
+        min-height: 52px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      nav::-webkit-scrollbar { display: none; }
+      .nav-logo { margin-right: 8px; white-space: nowrap; flex-shrink: 0; }
+      .nav-logo-title { font-size: 0.82rem; }
+      .nav-logo-sub { display: none; }
+      .nav-divider { flex-shrink: 0; }
+      .nav-btn { padding: 6px 10px; font-size: 0.78rem; white-space: nowrap; flex-shrink: 0; }
+
+      /* Main */
+      main { padding: 16px 12px 48px; }
+      h1 { font-size: 1.25rem; }
+      h2 { font-size: 1.05rem; }
+      .card { padding: 16px; }
+
+      /* Fases / overview grid */
+      .phases-overview-grid { padding: 0; grid-template-columns: 1fr; }
+
+      /* Calculadora */
+      .calc-row { grid-template-columns: 1fr; }
+
+      /* Análisis */
+      .analysis-row { grid-template-columns: 1fr; }
+
+      /* Simulador */
+      .charts-row { grid-template-columns: 1fr; }
+
+      /* Calendario */
+      .cal-months-wrap { grid-template-columns: 1fr; }
+      .cal-month-block { padding: 10px 8px; }
+      .cal-day { font-size: 0.62rem; }
+      .cal-weekday-lbl { font-size: 0.5rem; }
+      .cal-modal { padding: 18px; }
+      .cal-modal-btns { grid-template-columns: 1fr; }
+
+      /* Objetivos */
+      .obj-goals-grid { grid-template-columns: 1fr; }
+      .obj-short-list { gap: 6px; }
+      .obj-lp-card { padding: 20px 16px; }
+      .obj-section-header h1 { font-size: 1.3rem; }
+
+      /* Progreso */
+      .prog-overall { padding: 20px 16px; }
+      .prog-big-number { font-size: 2.8rem; }
+
+      /* Glosario */
+      .glosario-grid { grid-template-columns: 1fr; }
+
+      /* Tipografía general */
+      p { font-size: 0.85rem; }
+    }
   </style>
 </head>
 <body>
@@ -1129,6 +1192,11 @@ async function _initSync() {
       const d = snap.data();
       _SYNC_KEYS.forEach(k => { if (d[k] !== undefined) localStorage.setItem(k, JSON.stringify(d[k])); });
       _applyCloudData();
+    } else {
+      // First time: push existing localStorage data to Firebase
+      const localData = {};
+      _SYNC_KEYS.forEach(k => { const v = localStorage.getItem(k); if (v) { try { localData[k] = JSON.parse(v); } catch(e) {} } });
+      if (Object.keys(localData).length > 0) await _db.doc(_FB_DOC).set(localData);
     }
     _db.doc(_FB_DOC).onSnapshot(snap => {
       if (!snap.exists || snap.metadata.hasPendingWrites) return;
