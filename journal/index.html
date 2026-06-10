@@ -426,6 +426,57 @@
     border: 1px solid #1e2a3a;
     display: block;
   }
+
+  /* ─── RESPONSIVE MOBILE ──────────────────────── */
+  @media (max-width: 640px) {
+    /* Layout: sidebar arriba como nav horizontal */
+    .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+
+    .sidebar {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: 10px 12px;
+      gap: 4px;
+      border-right: none;
+      border-bottom: 1px solid #1e2a3a;
+    }
+    .sidebar::-webkit-scrollbar { display: none; }
+
+    .logo { display: none; }
+    .nav-section { display: none; }
+
+    .nav-btn {
+      white-space: nowrap;
+      flex-shrink: 0;
+      padding: 8px 12px;
+      font-size: 13px;
+      width: auto;
+    }
+
+    .main { padding: 16px 12px; }
+
+    /* Stats: 2 columnas en vez de 5 */
+    .stats-bar { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
+    .stat-card { padding: 12px; }
+    .stat-card .value { font-size: 20px; }
+
+    /* Modal */
+    .modal { width: calc(100vw - 24px); padding: 20px 16px; }
+
+    /* Formulario de trade */
+    .form-row { grid-template-columns: 1fr !important; }
+    .img-slots-grid { grid-template-columns: 1fr 1fr !important; }
+
+    /* Tabla de trades */
+    table { font-size: 12px; }
+    th, td { padding: 8px 6px !important; }
+
+    h2 { font-size: 17px; }
+    h3 { font-size: 14px; }
+  }
 </style>
 </head>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
