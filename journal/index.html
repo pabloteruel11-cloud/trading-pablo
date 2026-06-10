@@ -464,11 +464,16 @@
     .stat-card .value { font-size: 20px; }
 
     /* Modal */
-    .modal { width: calc(100vw - 24px); padding: 20px 16px; }
+    .modal { width: calc(100vw - 24px) !important; max-width: calc(100vw - 24px) !important; padding: 20px 16px; }
 
     /* Formulario de trade */
-    .form-row { grid-template-columns: 1fr !important; }
+    .form-grid { grid-template-columns: 1fr !important; }
+    .form-grid.triple { grid-template-columns: 1fr !important; }
     .img-slots-grid { grid-template-columns: 1fr 1fr !important; }
+
+    /* Dashboard y analytics grids */
+    .dashboard-grid { grid-template-columns: 1fr !important; }
+    .analytics-grid { grid-template-columns: 1fr !important; }
 
     /* Tabla de trades */
     table { font-size: 12px; }
@@ -527,7 +532,7 @@
 
 <!-- TRADE FORM MODAL -->
 <div class="overlay" id="tradeFormOverlay">
-  <div class="modal" style="width: 680px;">
+  <div class="modal">
     <h2 id="formTitle">Nuevo Trade</h2>
     <p class="subtitle">Registra los detalles de la operación</p>
 
@@ -742,7 +747,7 @@
         <!-- filled by JS -->
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div class="dashboard-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
         <div class="analytics-card">
           <h3>Curva de Equity</h3>
           <canvas id="equityCanvas" height="160"></canvas>
