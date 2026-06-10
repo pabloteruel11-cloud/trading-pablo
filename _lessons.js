@@ -6311,7 +6311,7 @@ Ambos tienen el mismo origen: las emociones tomaron el control en lugar del proc
 
 
 
-    <a href="../journal/index.html" target="_blank" class="btn-primary">Abrir Diario de Trading →</a>
+    <a href="journal/index.html" target="_blank" class="btn-primary">Abrir Diario de Trading →</a>
 
 
 
