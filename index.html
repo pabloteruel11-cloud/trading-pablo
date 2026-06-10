@@ -1,0 +1,3227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trading Pablo</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Trading">
+  <meta name="theme-color" content="#000000">
+  <style>
+    /* ── Reset & base ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-base:    #000000;
+      --bg-card:    #0a0a0a;
+      --bg-card2:   #111111;
+      --bg-card3:   #0d0d0d;
+      --border:     #1a1a1a;
+      --border-hov: #2d2d2d;
+      --text-pri:   #e2e8f0;
+      --text-sec:   #94a3b8;
+      --text-mut:   #475569;
+      --acc-blue:   #3b82f6;
+      --acc-green:  #26a69a;
+      --acc-red:    #ef5350;
+      --acc-yellow: #fbbf24;
+      --acc-purple: #8b5cf6;
+      --glow-blue:  rgba(59,130,246,0.18);
+      --glow-green: rgba(38,166,154,0.18);
+    }
+
+    html { font-size: 15px; }
+    body {
+      background: #000000;
+      color: var(--text-pri);
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── NAV ──────────────────────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(0,0,0,0.96);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      height: 58px;
+      gap: 24px;
+      box-shadow: 0 1px 20px rgba(0,0,0,0.8);
+    }
+    .nav-logo { display: flex; flex-direction: column; line-height: 1.2; margin-right: 16px; }
+    .nav-logo-title {
+      font-size: 1rem; font-weight: 700; letter-spacing: 0.02em;
+      background: linear-gradient(90deg, #e2e8f0, #94a3b8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .nav-logo-sub { font-size: 0.68rem; color: var(--acc-green); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; }
+    .nav-divider { width: 1px; height: 28px; background: var(--border); }
+    .nav-btn {
+      background: none; border: none; color: var(--text-sec);
+      font-size: 0.85rem; font-weight: 500; padding: 6px 14px;
+      border-radius: 8px; cursor: pointer;
+      transition: color 0.2s, background 0.2s; letter-spacing: 0.03em;
+      position: relative;
+    }
+    .nav-btn:hover { color: var(--text-pri); background: rgba(255,255,255,0.06); }
+    .nav-btn.active { color: var(--acc-blue); background: rgba(59,130,246,0.1); font-weight: 600; }
+    .nav-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 50%; transform: translateX(-50%);
+      width: 16px; height: 2px;
+      background: var(--acc-blue);
+      border-radius: 2px 2px 0 0;
+    }
+
+    /* ── MAIN ─────────────────────────────────────────────────────────── */
+    main { max-width: 1200px; margin: 0 auto; padding: 32px 24px 64px; }
+
+    section { display: none; }
+    section.active { display: block; }
+
+    /* ── CARDS & TYPOGRAPHY ───────────────────────────────────────────── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.03);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    h1 { font-size: 1.6rem; font-weight: 700; color: var(--text-pri); }
+    h2 { font-size: 1.2rem; font-weight: 700; color: var(--text-pri); }
+    h3 { font-size: 1rem; font-weight: 600; color: var(--text-pri); }
+    p  { color: var(--text-sec); font-size: 0.9rem; line-height: 1.7; }
+
+    .label-pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+    .pill-blue   { background: rgba(59,130,246,0.15);  color: var(--acc-blue);   border: 1px solid rgba(59,130,246,0.3); }
+    .pill-green  { background: rgba(38,166,154,0.15);  color: var(--acc-green);  border: 1px solid rgba(38,166,154,0.3); }
+    .pill-red    { background: rgba(239,83,80,0.15);   color: var(--acc-red);    border: 1px solid rgba(239,83,80,0.3); }
+    .pill-yellow { background: rgba(251,191,36,0.15);  color: var(--acc-yellow); border: 1px solid rgba(251,191,36,0.3); }
+    .pill-gray   { background: rgba(71,85,105,0.2);    color: var(--text-sec);   border: 1px solid rgba(71,85,105,0.4); }
+
+    /* ── MISC UTILS ───────────────────────────────────────────────────── */
+    .mt8  { margin-top: 8px; }  .mt16 { margin-top: 16px; }  .mt24 { margin-top: 24px; }
+    .mb8  { margin-bottom: 8px; } .mb16 { margin-bottom: 16px; } .mb24 { margin-bottom: 24px; }
+    .text-green  { color: var(--acc-green); }  .text-red    { color: var(--acc-red); }
+    .text-blue   { color: var(--acc-blue); }   .text-yellow { color: var(--acc-yellow); }
+    .text-mut    { color: var(--text-mut); }   .text-sec    { color: var(--text-sec); }
+
+    @keyframes fadeIn  { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeInFast { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes pulseGlow { 0%,100% { box-shadow:0 0 0 0 rgba(59,130,246,0); } 50% { box-shadow:0 0 20px 4px rgba(59,130,246,0.15); } }
+    .fade-in { animation: fadeIn 0.3s ease; }
+
+    /* ── HOME SECTION ─────────────────────────────────────────────────── */
+    .home-hero { text-align: center; padding: 72px 24px 52px; }
+    .home-hero h1 {
+      font-size: 2.8rem; font-weight: 800; margin-bottom: 14px;
+      background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 60%, #3b82f6 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.15;
+    }
+    .home-subtitle { font-size: 1.1rem; color: var(--acc-blue); margin-bottom: 8px; font-weight: 500; letter-spacing: 0.01em; }
+    .home-desc { color: var(--text-sec); max-width: 520px; margin: 0 auto 32px; line-height: 1.7; }
+    .btn-cta {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white; border: none; padding: 14px 34px;
+      border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(59,130,246,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(59,130,246,0.5); }
+    .btn-cta:active { transform: translateY(0); }
+    .btn-secondary {
+      background: none; border: 1px solid var(--border-hov); color: var(--text-sec);
+      padding: 12px 24px; border-radius: 10px; font-size: 0.9rem; cursor: pointer; margin-left: 12px;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--acc-blue); color: var(--text-pri); background: rgba(59,130,246,0.05); }
+
+    .phases-overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; max-width: 1100px; margin: 0 auto 40px; padding: 0 24px; }
+    .phase-overview-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px; cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .phase-overview-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--_phase-color, var(--acc-blue)); opacity: 0; transition: opacity 0.2s;
+    }
+    .phase-overview-card:hover { border-color: var(--border-hov); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.6); }
+    .phase-overview-card:hover::before { opacity: 1; }
+    .phase-overview-card .phase-num { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px; }
+    .phase-overview-card h3 { font-size: 0.93rem; font-weight: 700; margin-bottom: 6px; }
+    .phase-overview-card .phase-dur { font-size: 0.78rem; color: var(--text-mut); margin-bottom: 12px; }
+    .phase-mini-bar { height: 3px; border-radius: 2px; background: var(--border); overflow: hidden; }
+    .phase-mini-bar-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+    .phase-pct { font-size: 0.75rem; color: var(--text-mut); margin-top: 7px; }
+
+    /* ── FASES SECTION ────────────────────────────────────────────────── */
+    .phase-tabs { display: flex; gap: 6px; flex-wrap: wrap; padding: 20px 0 16px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+    .phase-tab-btn {
+      background: var(--bg-card); border: 1px solid var(--border); color: var(--text-sec);
+      padding: 7px 16px; border-radius: 8px; font-size: 0.82rem; cursor: pointer;
+      transition: all 0.2s; font-weight: 500;
+    }
+    .phase-tab-btn:hover { border-color: var(--border-hov); color: var(--text-pri); background: rgba(255,255,255,0.04); }
+    .phase-tab-btn.active { color: white; border-color: transparent; font-weight: 600; box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+
+    .phase-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+    .phase-big-bar { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .phase-big-bar-wrap { width: 130px; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .phase-big-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+    .phase-big-bar span { font-size: 0.85rem; color: var(--text-sec); min-width: 35px; font-weight: 600; }
+
+    /* Lesson cards */
+    .lesson-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; margin-bottom: 10px; overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .lesson-card:hover { border-color: var(--border-hov); }
+    .lesson-card-header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 17px 20px; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .lesson-card-header:hover { background: rgba(255,255,255,0.025); }
+    .lesson-num {
+      width: 33px; height: 33px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.83rem; font-weight: 700; flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+    .lesson-num.done   { background: linear-gradient(135deg, #16a34a, #15803d); color: white; }
+    .lesson-num.active { background: linear-gradient(135deg, var(--acc-blue), #2563eb); color: white; }
+    .lesson-num.locked { background: var(--border); color: var(--text-mut); box-shadow: none; }
+    .lesson-info { flex: 1; }
+    .lesson-title    { font-size: 0.94rem; font-weight: 600; line-height: 1.3; }
+    .lesson-subtitle { font-size: 0.79rem; color: var(--text-sec); margin-top: 2px; }
+    .lesson-meta { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
+    .lesson-dur  { font-size: 0.76rem; color: var(--text-mut); }
+    .lesson-done-badge {
+      font-size: 0.7rem; color: #34d399;
+      background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.25);
+      padding: 2px 8px; border-radius: 4px; font-weight: 600;
+    }
+    .lesson-chevron { color: var(--text-mut); font-size: 1.1rem; transition: transform 0.25s ease; }
+    .lesson-chevron.open { transform: rotate(90deg); color: var(--acc-blue); }
+
+    .lesson-card-body { display: none; padding: 0 20px 24px; border-top: 1px solid var(--border); animation: fadeInFast 0.2s ease; }
+    .lesson-card-body.open { display: block; }
+    .lesson-card-body canvas { display: block; width: 100%; border-radius: 10px; margin: 16px 0; border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
+
+    /* Lesson content styles */
+    .lesson-content p  { color: var(--text-sec); font-size: 0.9rem; line-height: 1.78; margin: 10px 0; }
+    .lesson-content strong { color: var(--text-pri); }
+    .lesson-content h3 { font-size: 0.94rem; font-weight: 700; color: var(--text-pri); margin: 18px 0 7px; }
+    .lesson-content ul { list-style: none; padding-left: 0; margin: 10px 0; }
+    .lesson-content li { color: var(--text-sec); font-size: 0.9rem; line-height: 1.72; margin: 5px 0; padding-left: 16px; position: relative; }
+    .lesson-content li::before { content: '›'; position: absolute; left: 0; color: var(--acc-blue); font-weight: 700; }
+    .lesson-content table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.85rem; border-radius: 8px; overflow: hidden; }
+    .lesson-content td, .lesson-content th { padding: 9px 13px; border: 1px solid var(--border); text-align: left; }
+    .lesson-content th { background: var(--bg-card2); color: var(--text-pri); font-weight: 600; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .lesson-content td { color: var(--text-sec); }
+
+    .concept-box {
+      background: rgba(59,130,246,0.07); border-left: 3px solid var(--acc-blue);
+      border-radius: 0 8px 8px 0; padding: 13px 16px; margin: 14px 0;
+      font-size: 0.88rem; color: var(--text-pri); line-height: 1.65;
+    }
+    .warning-box {
+      background: rgba(239,83,80,0.07); border-left: 3px solid var(--acc-red);
+      border-radius: 0 8px 8px 0; padding: 13px 16px; margin: 14px 0;
+      font-size: 0.88rem; color: #fca5a5; line-height: 1.65;
+    }
+    .tip-box {
+      background: rgba(251,191,36,0.07); border-left: 3px solid var(--acc-yellow);
+      border-radius: 0 8px 8px 0; padding: 13px 16px; margin: 14px 0;
+      font-size: 0.88rem; color: #fde68a; line-height: 1.65;
+    }
+    .quote-box {
+      background: rgba(139,92,246,0.07); border-left: 3px solid #8b5cf6;
+      border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 18px 0;
+      font-size: 0.92rem; color: #c4b5fd; font-style: italic; line-height: 1.7;
+    }
+
+    /* Key terms */
+    .key-terms-box {
+      background: var(--bg-card2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 16px; margin: 16px 0;
+    }
+    .key-term { font-size: 0.85rem; color: var(--text-sec); padding: 6px 0; border-bottom: 1px solid rgba(26,26,26,0.8); line-height: 1.55; }
+    .key-term:last-child { border: none; padding-bottom: 0; }
+    .key-term strong { color: var(--acc-blue); }
+
+    /* Quiz (lesson) */
+    .lesson-quiz { margin-top: 22px; padding: 18px; background: var(--bg-card2); border-radius: 12px; border: 1px solid var(--border); }
+    .lesson-quiz .quiz-q { font-size: 0.92rem; font-weight: 600; color: var(--text-pri); margin-bottom: 14px; }
+    .quiz-option {
+      display: block; padding: 10px 14px; margin: 7px 0;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+      cursor: pointer; font-size: 0.88rem; color: var(--text-sec);
+      transition: all 0.15s; width: 100%; text-align: left;
+    }
+    .quiz-option:hover { border-color: var(--acc-blue); color: var(--text-pri); background: rgba(59,130,246,0.05); }
+    .quiz-option.correct { border-color: #16a34a; background: rgba(22,163,74,0.1); color: #34d399; }
+    .quiz-option.wrong   { border-color: #dc2626; background: rgba(220,38,38,0.1); color: #f87171; }
+    .quiz-explanation { margin-top: 12px; padding: 12px 14px; background: rgba(59,130,246,0.07); border-radius: 8px; font-size: 0.85rem; color: var(--text-sec); display: none; border-left: 2px solid var(--acc-blue); }
+
+    /* Lesson complete button */
+    .btn-complete {
+      display: block; width: 100%; padding: 13px; margin-top: 22px;
+      background: linear-gradient(135deg, #16a34a, #15803d); color: white;
+      border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+      box-shadow: 0 3px 14px rgba(22,163,74,0.3);
+    }
+    .btn-complete:hover { box-shadow: 0 5px 20px rgba(22,163,74,0.45); transform: translateY(-1px); }
+    .btn-complete.done {
+      background: var(--bg-card2); color: #34d399;
+      border: 1px solid rgba(52,211,153,0.3); cursor: default;
+      box-shadow: none; transform: none;
+    }
+    /* Resource / YouTube links */
+    .lesson-resources { margin-top: 22px; border-top: 1px solid var(--border); padding-top: 16px; }
+    .lesson-resources-title { font-size: 0.7rem; font-weight: 700; color: var(--text-mut); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .resource-card {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 12px 14px; background: var(--bg-card2); border: 1px solid var(--border);
+      border-radius: 10px; margin-bottom: 8px; text-decoration: none;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    }
+    .resource-card:hover { border-color: rgba(204,0,0,0.5); background: rgba(204,0,0,0.04); transform: translateX(2px); }
+    .resource-yt-badge {
+      flex-shrink: 0; background: #cc0000; color: white;
+      border-radius: 4px; padding: 2px 7px; font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.05em; margin-top: 2px;
+    }
+    .resource-info { flex: 1; }
+    .resource-title { font-size: 0.87rem; font-weight: 600; color: var(--text-pri); margin-bottom: 3px; line-height: 1.35; }
+    .resource-channel { font-size: 0.74rem; color: #ff7777; margin-bottom: 4px; font-weight: 500; }
+    .resource-desc { font-size: 0.79rem; color: var(--text-sec); line-height: 1.58; }
+
+    /* Calc box */
+    .calc-box {
+      background: var(--bg-card2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px; margin: 16px 0;
+    }
+    .calc-box h3 { font-size: 0.94rem; margin-bottom: 14px; }
+    .calc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .calc-group { display: flex; flex-direction: column; gap: 5px; }
+    .calc-group label { font-size: 0.75rem; color: var(--text-mut); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; }
+    .calc-group input {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-pri); padding: 9px 12px; border-radius: 8px; font-size: 0.9rem;
+      transition: border-color 0.15s;
+    }
+    .calc-group input:focus { outline: none; border-color: var(--acc-blue); }
+    .calc-result {
+      background: rgba(59,130,246,0.07); border: 1px solid rgba(59,130,246,0.25);
+      border-radius: 10px; padding: 14px 16px; margin-top: 14px; font-size: 0.9rem;
+    }
+    .calc-result strong { color: var(--acc-blue); font-size: 1.15rem; }
+
+    /* ── STEP TUTORIAL ──────────────────────────────────────────────────── */
+    .step-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-top: 16px; }
+    .step-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 20px; border-bottom: 1px solid var(--border);
+      background: var(--bg-card2); flex-wrap: wrap; gap: 10px;
+    }
+    .step-dots { display: flex; gap: 5px; align-items: center; }
+    .step-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); transition: all 0.25s ease; }
+    .step-dot.done   { background: var(--acc-green); opacity: 0.6; }
+    .step-dot.active { background: var(--acc-blue); width: 20px; border-radius: 4px; }
+    .step-counter-txt { font-size: 0.76rem; color: var(--text-mut); white-space: nowrap; font-weight: 500; }
+    .step-nav-btns { display: flex; gap: 6px; }
+    .step-narration { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+    .step-narration .step-title { font-size: 1rem; font-weight: 700; color: var(--text-pri); margin-bottom: 9px; line-height: 1.3; }
+    .step-narration .step-text  { font-size: 0.89rem; color: var(--text-sec); line-height: 1.78; }
+    .step-narration .step-text strong { color: var(--acc-yellow); }
+    .step-narration .step-text em     { color: var(--acc-blue); font-style: normal; font-weight: 600; }
+    .step-canvas-area { padding: 14px; }
+    .step-canvas-area canvas { display: block; width: 100%; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.5); }
+    .step-hint {
+      margin: 0 14px 14px; padding: 11px 15px;
+      background: rgba(59,130,246,0.06); border-left: 3px solid var(--acc-blue);
+      border-radius: 0 8px 8px 0; font-size: 0.83rem; color: var(--text-sec); line-height: 1.6;
+    }
+    .step-hint strong { color: var(--acc-blue); }
+
+    /* ── PROGRESO SECTION ────────────────────────────────────────────────── */
+    .prog-overall {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 32px; text-align: center; margin-bottom: 20px;
+      position: relative; overflow: hidden;
+    }
+    .prog-overall::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--acc-blue), var(--acc-green));
+    }
+    .prog-big-number {
+      font-size: 5rem; font-weight: 800; line-height: 1;
+      background: linear-gradient(135deg, var(--acc-blue), var(--acc-green));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .prog-big-label { font-size: 1rem; color: var(--text-sec); margin: 8px 0 20px; }
+    .prog-bar-big { height: 6px; background: var(--border); border-radius: 4px; overflow: hidden; max-width: 420px; margin: 0 auto; }
+    .prog-bar-big-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--acc-blue), var(--acc-green)); transition: width 0.6s ease; }
+    .prog-phases { display: flex; flex-direction: column; gap: 10px; }
+    .prog-phase-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; transition: border-color 0.2s; }
+    .prog-phase-card:hover { border-color: var(--border-hov); }
+    .prog-phase-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .prog-phase-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 12px; }
+    .prog-phase-bar-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+    .prog-lessons-list { display: flex; flex-direction: column; gap: 1px; }
+    .prog-lesson-item { display: flex; align-items: center; gap: 10px; padding: 6px 6px; cursor: pointer; border-radius: 6px; transition: background 0.15s; }
+    .prog-lesson-item:hover { background: rgba(255,255,255,0.04); }
+    .prog-lesson-check { font-size: 0.82rem; width: 20px; color: var(--text-mut); }
+    .prog-lesson-check.done { color: #34d399; }
+    .prog-lesson-name { flex: 1; font-size: 0.84rem; color: var(--text-sec); }
+    .prog-lesson-name.done { color: var(--text-mut); text-decoration: line-through; }
+    .prog-lesson-dur { font-size: 0.76rem; color: var(--text-mut); }
+
+    /* ── SIMULATOR ────────────────────────────────────────────────────── */
+    .sim-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+    .sim-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .sim-btn {
+      background: var(--bg-card2); border: 1px solid var(--border);
+      color: var(--text-pri); padding: 7px 16px; border-radius: 8px;
+      font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.15s;
+    }
+    .sim-btn:hover { background: var(--border); border-color: var(--border-hov); }
+    .sim-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .sim-goto { display: flex; align-items: center; gap: 6px; }
+    .sim-goto input {
+      background: var(--bg-card2); border: 1px solid var(--border);
+      color: var(--text-pri); padding: 7px 10px; border-radius: 8px;
+      font-size: 0.85rem; width: 60px; text-align: center;
+      transition: border-color 0.15s;
+    }
+    .sim-goto input:focus { outline: none; border-color: var(--acc-blue); }
+    .sim-counter { font-size: 0.9rem; font-weight: 700; color: var(--text-pri); white-space: nowrap; }
+    .sim-counter span { color: var(--text-mut); font-weight: 400; }
+
+    .progress-wrap { margin-bottom: 20px; }
+    .progress-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+    .progress-stats { display: flex; gap: 18px; flex-wrap: wrap; }
+    .stat-item {
+      font-size: 0.79rem; color: var(--text-sec);
+      background: var(--bg-card2); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
+    }
+    .stat-item strong { color: var(--text-pri); font-weight: 700; }
+    .progress-bar-bg { width: 100%; height: 5px; background: var(--bg-card2); border-radius: 999px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--acc-blue), var(--acc-green)); transition: width 0.5s ease; width: 0%; }
+
+    .case-title-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 18px 22px; margin-bottom: 14px;
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+    }
+    .case-title { font-size: 1rem; font-weight: 600; color: var(--text-pri); margin-bottom: 8px; line-height: 1.35; }
+    .case-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+    @media (max-width: 780px) { .charts-row { grid-template-columns: 1fr; } }
+    .chart-panel {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    }
+    .chart-panel-header {
+      padding: 10px 16px 0; font-size: 0.7rem; font-weight: 700;
+      color: var(--text-mut); text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .chart-panel canvas { display: block; width: 100%; }
+
+    .analysis-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+    @media (max-width: 700px) { .analysis-row { grid-template-columns: 1fr; } }
+    .analysis-panel { border-radius: 12px; padding: 14px 16px; border-left: 3px solid; transition: transform 0.15s; }
+    .analysis-panel.present { background: rgba(38,166,154,0.07); border-left-color: var(--acc-green); }
+    .analysis-panel.absent  { background: rgba(239,83,80,0.07);  border-left-color: var(--acc-red); }
+    .analysis-panel-title { display: flex; align-items: center; gap: 7px; font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; }
+    .analysis-icon { font-size: 0.9rem; }
+    .analysis-panel p { font-size: 0.8rem; line-height: 1.6; }
+
+    .quiz-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px; margin-bottom: 14px;
+    }
+    .quiz-question { font-size: 1rem; font-weight: 600; color: var(--text-pri); margin-bottom: 20px; line-height: 1.4; }
+    .quiz-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-yes, .btn-no {
+      padding: 13px 36px; font-size: 0.97rem; font-weight: 700;
+      border: none; border-radius: 10px; cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s; letter-spacing: 0.02em;
+    }
+    .btn-yes { background: linear-gradient(135deg, #26a69a, #1d8a7f); color: #fff; box-shadow: 0 3px 14px rgba(38,166,154,0.3); }
+    .btn-no  { background: linear-gradient(135deg, #ef5350, #d32f2f); color: #fff; box-shadow: 0 3px 14px rgba(239,83,80,0.3); }
+    .btn-yes:hover, .btn-no:hover { transform: translateY(-2px); }
+    .btn-yes:hover { box-shadow: 0 5px 20px rgba(38,166,154,0.45); }
+    .btn-no:hover  { box-shadow: 0 5px 20px rgba(239,83,80,0.45); }
+    .quiz-result { display: none; }
+    .verdict-box { border-radius: 12px; padding: 18px 20px; margin-top: 16px; border: 1px solid; }
+    .verdict-box.correct   { background: rgba(38,166,154,0.08); border-color: rgba(38,166,154,0.4); }
+    .verdict-box.incorrect { background: rgba(239,83,80,0.08);  border-color: rgba(239,83,80,0.4); }
+    .verdict-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; padding: 4px 12px; border-radius: 999px; margin-bottom: 12px; }
+    .verdict-badge.correct   { background: rgba(38,166,154,0.18); color: var(--acc-green); }
+    .verdict-badge.incorrect { background: rgba(239,83,80,0.18);  color: var(--acc-red); }
+    .verdict-text        { font-size: 0.9rem; color: var(--text-pri); font-weight: 500; margin-bottom: 10px; line-height: 1.5; }
+    .verdict-explanation { font-size: 0.84rem; color: var(--text-sec); line-height: 1.65; }
+    .invalid-reason-badge { display: inline-block; margin-top: 10px; padding: 4px 12px; border-radius: 8px; font-size: 0.73rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+
+    /* ── LESSON CONTENT EXTRAS ──────────────────────────────────────────── */
+    .calc-btn {
+      background: linear-gradient(135deg, var(--acc-blue), #2563eb); color: white;
+      border: none; padding: 9px 22px; border-radius: 8px; font-size: 0.87rem; font-weight: 600;
+      cursor: pointer; margin-top: 8px; transition: box-shadow 0.15s, transform 0.15s;
+      box-shadow: 0 3px 12px rgba(59,130,246,0.3);
+    }
+    .calc-btn:hover { box-shadow: 0 4px 18px rgba(59,130,246,0.45); transform: translateY(-1px); }
+    .calc-desc { font-size: 0.84rem; color: var(--text-sec); margin-bottom: 10px; }
+    .btn-primary {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--acc-blue), #2563eb); color: white;
+      border: none; padding: 12px 26px; border-radius: 10px; font-size: 0.93rem; font-weight: 600;
+      cursor: pointer; margin: 12px 0; text-decoration: none;
+      box-shadow: 0 3px 14px rgba(59,130,246,0.3); transition: all 0.15s;
+    }
+    .btn-primary:hover { box-shadow: 0 5px 22px rgba(59,130,246,0.5); transform: translateY(-1px); }
+    .lesson-sim-link, .lesson-journal-link { padding: 8px 0; }
+    .lesson-intro { color: var(--text-sec); font-size: 0.9rem; margin-bottom: 12px; }
+    .lesson-objective {
+      margin-top: 18px; padding: 14px 16px;
+      background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 10px; font-size: 0.87rem; color: var(--text-sec);
+    }
+    .lesson-objective strong { color: var(--text-pri); display: block; margin-bottom: 8px; font-size: 0.9rem; }
+    .lesson-objective ul { padding-left: 0; list-style: none; }
+    .lesson-objective li { margin: 5px 0; padding-left: 16px; position: relative; }
+    .lesson-objective li::before { content: '›'; position: absolute; left: 0; color: var(--acc-blue); font-weight: 700; }
+
+    /* ── GLOSARIO ───────────────────────────────────────────────────────── */
+    .glosario-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 20px; }
+    .glosario-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+    .glosario-card:hover { border-color: rgba(251,191,36,0.25); transform: translateY(-1px); box-shadow: 0 6px 24px rgba(0,0,0,0.5); }
+    .glosario-term { font-size: 0.94rem; font-weight: 700; color: var(--acc-yellow); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .glosario-tag { font-size: 0.66rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .tag-en  { background: rgba(59,130,246,0.15); color: var(--acc-blue); border: 1px solid rgba(59,130,246,0.25); }
+    .tag-esp { background: rgba(38,166,154,0.15); color: var(--acc-green); border: 1px solid rgba(38,166,154,0.25); }
+    .glosario-def { font-size: 0.84rem; color: var(--text-sec); line-height: 1.68; }
+    .glosario-def strong { color: var(--text-pri); }
+    .glosario-example {
+      margin-top: 10px; padding: 9px 12px; background: var(--bg-card2);
+      border-radius: 7px; font-size: 0.79rem; color: var(--text-mut);
+      border-left: 2px solid var(--border); line-height: 1.6; font-style: italic;
+    }
+
+    /* ── HOMEWORK ───────────────────────────────────────────────────────── */
+    .homework-section { margin: 22px 0 14px; border-top: 1px solid var(--border); padding-top: 18px; }
+    .homework-title {
+      font-size: 0.72rem; font-weight: 700; color: var(--acc-yellow);
+      text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .homework-card {
+      background: rgba(251,191,36,0.04); border: 1px solid rgba(251,191,36,0.18);
+      border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .homework-card:hover { border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.06); }
+    .hw-header { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; flex-wrap: wrap; }
+    .hw-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .hw-title { font-size: 0.89rem; font-weight: 600; color: var(--text-pri); flex: 1; line-height: 1.3; }
+    .hw-tool {
+      font-size: 0.7rem; background: rgba(59,130,246,0.12); color: var(--acc-blue);
+      border: 1px solid rgba(59,130,246,0.25); border-radius: 4px;
+      padding: 2px 8px; font-weight: 700; letter-spacing: 0.03em;
+    }
+    .hw-dur { font-size: 0.7rem; color: var(--text-mut); }
+    .hw-task { font-size: 0.84rem; color: var(--text-sec); line-height: 1.68; }
+    .hw-deliverable {
+      margin-top: 10px; padding: 9px 12px;
+      background: rgba(22,163,74,0.07); border-radius: 7px; border-left: 2px solid rgba(52,211,153,0.4);
+      font-size: 0.81rem; color: #86efac; line-height: 1.55;
+    }
+    .hw-deliverable strong { color: #34d399; }
+
+    /* ── REAL CHART SCREENSHOTS ──────────────────────────────────────────── */
+    .real-chart-wrap { margin: 0 0 20px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 24px rgba(0,0,0,0.6); }
+    .real-chart-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bg-card2); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .real-chart-badge { font-size: 0.63rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; background: rgba(38,166,154,0.12); color: var(--acc-green); border: 1px solid rgba(38,166,154,0.25); padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+    .real-chart-symbol { font-size: 0.8rem; font-weight: 700; color: var(--text-pri); }
+    .real-chart-tf { font-size: 0.7rem; color: var(--text-mut); background: var(--border); padding: 2px 7px; border-radius: 3px; font-weight: 600; }
+    .real-chart-label { font-size: 0.78rem; color: var(--text-sec); flex: 1; }
+    .real-chart-img { display: block; width: 100%; }
+    .real-chart-caption { padding: 10px 14px; background: var(--bg-card2); font-size: 0.8rem; color: var(--text-sec); border-top: 1px solid var(--border); line-height: 1.6; }
+    .real-chart-caption strong { color: var(--text-pri); }
+
+    /* ── CALENDARIO DE CONSISTENCIA ─────────────────────────────── */
+    .cal-stats-bar { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 24px; }
+    .cal-stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 20px; text-align: center; min-width: 120px; }
+    .cal-stat-num { font-size: 1.8rem; font-weight: 800; color: var(--acc-green); line-height: 1; }
+    .cal-stat-lbl { font-size: 0.7rem; color: var(--text-mut); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; }
+    .cal-months-wrap { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; margin-bottom: 32px; }
+    .cal-month-block { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+    .cal-month-title { font-size: 0.82rem; font-weight: 700; color: var(--text-pri); text-align: center; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 3px; }
+    .cal-weekday-lbl { text-align: center; font-size: 0.59rem; font-weight: 700; color: var(--text-mut); padding: 2px 0; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .cal-day {
+      aspect-ratio: 1; border-radius: 5px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; position: relative; transition: all 0.12s; font-size: 0.72rem; font-weight: 500;
+      color: var(--text-sec); background: var(--bg-card2); border: 1px solid transparent;
+    }
+    .cal-day:hover { border-color: var(--acc-blue); color: var(--text-pri); }
+    .cal-day.empty { background: transparent; cursor: default; pointer-events: none; }
+    .cal-day.today { border-color: var(--acc-blue) !important; color: var(--acc-blue) !important; font-weight: 700; box-shadow: 0 0 0 1px rgba(59,130,246,0.3); }
+    .cal-day.done { background: linear-gradient(135deg, #16a34a, #15803d) !important; color: white !important; font-weight: 700; border-color: transparent !important; box-shadow: 0 2px 8px rgba(22,163,74,0.45); }
+    .cal-day.miss { background: rgba(239,83,80,0.08) !important; color: var(--acc-red) !important; border-color: rgba(239,83,80,0.2) !important; }
+    .cal-day.has-notes::before { content: ''; position: absolute; top: 2px; right: 2px; width: 4px; height: 4px; border-radius: 50%; background: var(--acc-yellow); }
+    .cal-day.future { opacity: 0.3; cursor: default; pointer-events: none; }
+    .cal-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.15s ease; }
+    .cal-modal { background: var(--bg-card); border: 1px solid var(--border-hov); border-radius: 18px; padding: 28px; max-width: 460px; width: 100%; box-shadow: 0 32px 80px rgba(0,0,0,0.9); animation: fadeIn 0.2s ease; }
+    .cal-modal-date { font-size: 1.1rem; font-weight: 700; color: var(--text-pri); margin-bottom: 4px; }
+    .cal-modal-sub { font-size: 0.82rem; color: var(--acc-blue); margin-bottom: 18px; font-weight: 600; }
+    .cal-modal-textarea { width: 100%; min-height: 110px; background: var(--bg-card2); border: 1px solid var(--border); border-radius: 10px; color: var(--text-pri); font-size: 0.88rem; line-height: 1.65; padding: 12px 14px; resize: vertical; font-family: inherit; margin-bottom: 16px; transition: border-color 0.15s; }
+    .cal-modal-textarea:focus { outline: none; border-color: var(--acc-blue); }
+    .cal-modal-textarea::placeholder { color: var(--text-mut); font-size: 0.83rem; }
+    .cal-modal-status-lbl { font-size: 0.72rem; color: var(--text-mut); margin-bottom: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; }
+    .cal-modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .cal-btn-done { padding: 14px; background: rgba(22,163,74,0.08); color: #34d399; border: 2px solid rgba(22,163,74,0.2); border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+    .cal-btn-done:hover { background: rgba(22,163,74,0.15); border-color: rgba(22,163,74,0.45); }
+    .cal-btn-done.active { background: linear-gradient(135deg,#16a34a,#15803d); color: white; border-color: transparent; box-shadow: 0 3px 16px rgba(22,163,74,0.45); }
+    .cal-btn-miss { padding: 14px; background: rgba(239,83,80,0.06); color: var(--acc-red); border: 2px solid rgba(239,83,80,0.18); border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+    .cal-btn-miss:hover { background: rgba(239,83,80,0.12); border-color: rgba(239,83,80,0.4); }
+    .cal-btn-miss.active { background: rgba(239,83,80,0.16); border-color: rgba(239,83,80,0.55); box-shadow: 0 0 0 3px rgba(239,83,80,0.12); }
+    .cal-modal-footer { display: flex; gap: 8px; justify-content: flex-end; }
+    .cal-btn-save { background: linear-gradient(135deg,var(--acc-blue),#2563eb); color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.15s; box-shadow: 0 3px 12px rgba(59,130,246,0.3); }
+    .cal-btn-save:hover { box-shadow: 0 4px 18px rgba(59,130,246,0.5); transform: translateY(-1px); }
+    .cal-btn-cancel { background: none; border: 1px solid var(--border-hov); color: var(--text-sec); padding: 10px 18px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: all 0.15s; }
+    .cal-btn-cancel:hover { border-color: var(--acc-blue); color: var(--text-pri); }
+
+    /* ── OBJETIVOS SECTION ──────────────────────────────────────────────── */
+    .obj-section-header { margin-bottom: 32px; }
+    .obj-section-header h1 { font-size: 1.7rem; font-weight: 800; margin-bottom: 6px;
+      background: linear-gradient(135deg, #e2e8f0, #94a3b8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .obj-subsection { margin-bottom: 48px; }
+    .obj-subsection-title { font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.14em; color: var(--text-mut); margin-bottom: 6px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .obj-subsection-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .obj-subsection-heading { font-size: 1.15rem; font-weight: 700; color: var(--text-pri); margin-bottom: 4px; }
+    .obj-subsection-desc { font-size: 0.87rem; color: var(--text-sec); margin-bottom: 20px; }
+
+    /* Long-term goal cards */
+    .obj-goals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    @media (max-width: 720px) { .obj-goals-grid { grid-template-columns: 1fr; } }
+    .obj-goal-card {
+      position: relative; border-radius: 18px; padding: 32px 24px 28px;
+      background: var(--bg-card); overflow: hidden; cursor: default;
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .obj-goal-card:hover { transform: translateY(-4px); }
+    .obj-goal-card::before {
+      content: ''; position: absolute; inset: 0; border-radius: 18px;
+      padding: 1.5px; -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      background: var(--_gcard-grad);
+    }
+    .obj-goal-card-glow {
+      position: absolute; inset: -40%; border-radius: 50%;
+      background: var(--_gcard-glow); filter: blur(60px); opacity: 0.18;
+      pointer-events: none;
+    }
+    .obj-goal-card.money { --_gcard-grad: linear-gradient(135deg,#fbbf24,#f59e0b,#92400e); --_gcard-glow: #fbbf24; }
+    .obj-goal-card.world  { --_gcard-grad: linear-gradient(135deg,#3b82f6,#06b6d4,#0e7490); --_gcard-glow: #3b82f6; }
+    .obj-goal-card.car   { --_gcard-grad: linear-gradient(135deg,#8b5cf6,#ec4899,#be185d);  --_gcard-glow: #8b5cf6; }
+    .obj-goal-icon { font-size: 3rem; margin-bottom: 14px; display: block; filter: drop-shadow(0 0 12px rgba(255,255,255,0.2)); }
+    .obj-goal-title { font-size: 1.05rem; font-weight: 800; color: var(--text-pri); margin-bottom: 8px; line-height: 1.2; }
+    .obj-goal-phrase {
+      font-size: 0.82rem; line-height: 1.6;
+      background: linear-gradient(135deg, var(--text-sec), var(--text-mut));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    /* Short-term checkboxes */
+    .obj-progress-bar-wrap { margin-bottom: 20px; }
+    .obj-progress-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .obj-progress-label span { font-size: 0.78rem; color: var(--text-sec); font-weight: 600; }
+    .obj-progress-label .obj-progress-count { font-size: 0.78rem; color: var(--acc-green); font-weight: 700; }
+    .obj-progress-bar { height: 4px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .obj-progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--acc-green), #34d399); transition: width 0.5s ease; }
+
+    .obj-short-list { display: flex; flex-direction: column; gap: 8px; }
+    .obj-short-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; cursor: pointer; transition: border-color 0.2s, background 0.2s;
+      user-select: none;
+    }
+    .obj-short-item:hover { border-color: var(--border-hov); background: rgba(255,255,255,0.02); }
+    .obj-short-item.checked { border-color: rgba(38,166,154,0.35); background: rgba(38,166,154,0.04); }
+    .obj-custom-cb {
+      flex-shrink: 0; width: 20px; height: 20px; border-radius: 6px;
+      border: 2px solid var(--border-hov); background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 1px; transition: all 0.2s;
+    }
+    .obj-short-item.checked .obj-custom-cb {
+      background: var(--acc-green); border-color: var(--acc-green);
+      box-shadow: 0 0 10px rgba(38,166,154,0.4);
+    }
+    .obj-custom-cb-check { color: white; font-size: 0.75rem; font-weight: 900; opacity: 0; transition: opacity 0.15s; }
+    .obj-short-item.checked .obj-custom-cb-check { opacity: 1; }
+    .obj-short-text { flex: 1; font-size: 0.88rem; color: var(--text-sec); line-height: 1.55; transition: color 0.2s; }
+    .obj-short-item.checked .obj-short-text { color: var(--text-mut); text-decoration: line-through; }
+    .obj-short-num { flex-shrink: 0; font-size: 0.7rem; font-weight: 700; color: var(--text-mut); margin-top: 2px; min-width: 18px; text-align: right; }
+
+    /* Diary */
+    .obj-diary-input-area { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+    .obj-diary-status-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .obj-diary-status-btn {
+      padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--bg-card2); color: var(--text-sec); font-size: 0.84rem; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .obj-diary-status-btn:hover { border-color: var(--border-hov); color: var(--text-pri); }
+    .obj-diary-status-btn.active-good  { background: rgba(38,166,154,0.12); border-color: rgba(38,166,154,0.5); color: var(--acc-green); box-shadow: 0 0 0 1px rgba(38,166,154,0.2); }
+    .obj-diary-status-btn.active-meh   { background: rgba(251,191,36,0.1);  border-color: rgba(251,191,36,0.4);  color: var(--acc-yellow); }
+    .obj-diary-status-btn.active-bad   { background: rgba(239,83,80,0.09);  border-color: rgba(239,83,80,0.4);   color: var(--acc-red); }
+    .obj-diary-textarea {
+      width: 100%; min-height: 120px; background: var(--bg-card2); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text-pri); font-size: 0.9rem; line-height: 1.7;
+      padding: 14px 16px; resize: vertical; font-family: inherit; transition: border-color 0.15s;
+    }
+    .obj-diary-textarea:focus { outline: none; border-color: rgba(59,130,246,0.45); }
+    .obj-diary-textarea::placeholder { color: var(--text-mut); font-size: 0.85rem; }
+    .obj-diary-save-btn {
+      margin-top: 12px; padding: 11px 28px;
+      background: linear-gradient(135deg, var(--acc-blue), #2563eb); color: white;
+      border: none; border-radius: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      box-shadow: 0 3px 14px rgba(59,130,246,0.3); transition: all 0.15s;
+    }
+    .obj-diary-save-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 20px rgba(59,130,246,0.45); }
+    .obj-diary-history-title { font-size: 0.7rem; font-weight: 700; color: var(--text-mut); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+    .obj-diary-entries { display: flex; flex-direction: column; gap: 8px; }
+    .obj-diary-entry-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px; transition: border-color 0.15s;
+    }
+    .obj-diary-entry-card:hover { border-color: var(--border-hov); }
+    .obj-diary-entry-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .obj-diary-entry-date { font-size: 0.78rem; font-weight: 700; color: var(--text-sec); }
+    .obj-diary-entry-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 9px; border-radius: 5px; }
+    .obj-diary-entry-badge.good { background: rgba(38,166,154,0.15); color: var(--acc-green); border: 1px solid rgba(38,166,154,0.3); }
+    .obj-diary-entry-badge.meh  { background: rgba(251,191,36,0.12); color: var(--acc-yellow); border: 1px solid rgba(251,191,36,0.3); }
+    .obj-diary-entry-badge.bad  { background: rgba(239,83,80,0.1);   color: var(--acc-red);    border: 1px solid rgba(239,83,80,0.3); }
+    .obj-diary-entry-preview { font-size: 0.83rem; color: var(--text-mut); line-height: 1.5; }
+
+    /* Affirmations */
+    .obj-affirm-grid { display: flex; flex-direction: column; gap: 10px; }
+    .obj-affirm-card {
+      position: relative; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px 52px 20px 22px;
+      transition: border-color 0.2s, box-shadow 0.2s; cursor: text;
+    }
+    .obj-affirm-card:hover { border-color: rgba(251,191,36,0.2); box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
+    .obj-affirm-text {
+      font-size: 1.05rem; font-weight: 700; line-height: 1.4;
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 40%, #e2e8f0 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .obj-affirm-input {
+      width: 100%; background: transparent; border: none; outline: none;
+      font-size: 1.05rem; font-weight: 700; line-height: 1.4; color: #fbbf24;
+      font-family: inherit; resize: none; padding: 0;
+    }
+    .obj-affirm-del {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--text-mut); font-size: 1.1rem;
+      cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: color 0.15s, background 0.15s;
+      line-height: 1;
+    }
+    .obj-affirm-del:hover { color: var(--acc-red); background: rgba(239,83,80,0.08); }
+    .obj-add-affirm-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 13px 20px; border: 1px dashed var(--border-hov);
+      border-radius: 14px; background: none; color: var(--text-mut);
+      font-size: 0.87rem; font-weight: 600; cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+      margin-top: 4px; width: 100%;
+    }
+    .obj-add-affirm-btn:hover { border-color: rgba(251,191,36,0.35); color: var(--acc-yellow); background: rgba(251,191,36,0.04); }
+    .obj-affirm-note {
+      margin-top: 24px; padding: 14px 18px;
+      background: rgba(251,191,36,0.05); border: 1px solid rgba(251,191,36,0.18);
+      border-radius: 12px; font-size: 0.84rem; color: #fde68a; line-height: 1.6;
+      text-align: center; font-style: italic;
+    }
+
+    /* Extra long-term card color variants */
+    .obj-goal-card.green  { --_gcard-grad: linear-gradient(135deg,#26a69a,#10b981,#065f46); --_gcard-glow: #26a69a; }
+    .obj-goal-card.orange { --_gcard-grad: linear-gradient(135deg,#f97316,#ea580c,#c2410c); --_gcard-glow: #f97316; }
+    .obj-goal-card.pink   { --_gcard-grad: linear-gradient(135deg,#ec4899,#db2777,#be185d); --_gcard-glow: #ec4899; }
+
+    /* Delete btn on long-term cards */
+    .obj-lp-del {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.07);
+      color: var(--text-mut); width: 26px; height: 26px; border-radius: 50%;
+      font-size: 1rem; line-height: 1; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; z-index: 2;
+    }
+    .obj-lp-del:hover { background: rgba(239,83,80,0.35); color: white; border-color: rgba(239,83,80,0.5); }
+
+    /* Delete btn on short-term items */
+    .obj-short-del {
+      flex-shrink: 0; background: none; border: none; color: transparent;
+      font-size: 1.05rem; cursor: pointer; padding: 2px 7px; border-radius: 5px;
+      transition: all 0.15s; line-height: 1;
+    }
+    .obj-short-item:hover .obj-short-del { color: var(--text-mut); }
+    .obj-short-del:hover { color: var(--acc-red) !important; background: rgba(239,83,80,0.08); }
+
+    /* Add forms */
+    .obj-add-form {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      margin-top: 12px; padding: 14px; background: var(--bg-card2);
+      border: 1px solid var(--border); border-radius: 12px;
+    }
+    .obj-add-input {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-pri); padding: 9px 12px; border-radius: 8px;
+      font-size: 0.87rem; font-family: inherit; transition: border-color 0.15s;
+    }
+    .obj-add-input:focus { outline: none; border-color: var(--acc-blue); }
+    .obj-add-input::placeholder { color: var(--text-mut); }
+    .obj-add-save-btn {
+      background: linear-gradient(135deg, var(--acc-blue), #2563eb); color: white;
+      border: none; padding: 9px 18px; border-radius: 8px; font-size: 0.85rem;
+      font-weight: 600; cursor: pointer; white-space: nowrap;
+      box-shadow: 0 2px 10px rgba(59,130,246,0.3); transition: box-shadow 0.15s;
+    }
+    .obj-add-save-btn:hover { box-shadow: 0 4px 16px rgba(59,130,246,0.5); }
+    .obj-add-cancel-btn {
+      background: none; border: 1px solid var(--border-hov); color: var(--text-mut);
+      width: 32px; height: 32px; border-radius: 8px; font-size: 1.1rem;
+      cursor: pointer; transition: all 0.15s; flex-shrink: 0; line-height: 1;
+    }
+    .obj-add-cancel-btn:hover { border-color: var(--acc-red); color: var(--acc-red); }
+    .obj-add-item-btn {
+      margin-top: 12px; width: 100%; padding: 11px 16px;
+      border: 1px dashed var(--border-hov); border-radius: 10px;
+      background: none; color: var(--text-mut); font-size: 0.85rem;
+      font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .obj-add-item-btn:hover { border-color: rgba(59,130,246,0.4); color: var(--acc-blue); background: rgba(59,130,246,0.03); }
+
+    /* Diary action framing */
+    .obj-diary-question {
+      font-size: 0.95rem; font-weight: 700; color: var(--text-pri);
+      margin-bottom: 14px; line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ────────────────────────── NAV ────────────────────────── -->
+<nav>
+  <div class="nav-logo">
+    <span class="nav-logo-title">EUR/USD Trading</span>
+    <span class="nav-logo-sub">De cero a trader</span>
+  </div>
+  <div class="nav-divider"></div>
+  <button class="nav-btn active" onclick="showSection('home')">Inicio</button>
+  <button class="nav-btn" onclick="showSection('fases')">Plan de Estudios</button>
+  <button class="nav-btn" onclick="showSection('simulator')">Simulador</button>
+  <button class="nav-btn" onclick="showSection('progreso')">Mi Progreso</button>
+  <button class="nav-btn" onclick="showSection('glosario')">Glosario</button>
+  <button class="nav-btn" onclick="showSection('objetivos')">Objetivos</button>
+</nav>
+
+<main>
+
+  <!-- ══════════════════════════ HOME ══════════════════════════ -->
+  <section id="home-section" class="active">
+    <div class="home-hero">
+      <h1>De cero a trader</h1>
+      <p class="home-subtitle">Plan de estudios completo — 21 lecciones en 6 fases</p>
+      <p class="home-desc">Aprende a leer el mercado desde cero. Estrategia de 3 pilares, gestión de riesgo y psicología. Sin jerga sin explicar. Con gráficos interactivos y deberes prácticos.</p>
+      <div style="display:flex;justify-content:center;gap:28px;margin-bottom:28px;flex-wrap:wrap;">
+        <div style="text-align:center;">
+          <div style="font-size:1.6rem;font-weight:800;color:var(--acc-blue);line-height:1">21</div>
+          <div style="font-size:0.75rem;color:var(--text-mut);margin-top:2px;text-transform:uppercase;letter-spacing:0.06em">Lecciones</div>
+        </div>
+        <div style="width:1px;height:40px;background:var(--border);align-self:center"></div>
+        <div style="text-align:center;">
+          <div style="font-size:1.6rem;font-weight:800;color:var(--acc-green);line-height:1">6</div>
+          <div style="font-size:0.75rem;color:var(--text-mut);margin-top:2px;text-transform:uppercase;letter-spacing:0.06em">Fases</div>
+        </div>
+        <div style="width:1px;height:40px;background:var(--border);align-self:center"></div>
+        <div style="text-align:center;">
+          <div style="font-size:1.6rem;font-weight:800;color:var(--acc-yellow);line-height:1">100</div>
+          <div style="font-size:0.75rem;color:var(--text-mut);margin-top:2px;text-transform:uppercase;letter-spacing:0.06em">Casos sim.</div>
+        </div>
+        <div style="width:1px;height:40px;background:var(--border);align-self:center"></div>
+        <div style="text-align:center;">
+          <div style="font-size:1.6rem;font-weight:800;color:var(--acc-purple);line-height:1">3</div>
+          <div style="font-size:0.75rem;color:var(--text-mut);margin-top:2px;text-transform:uppercase;letter-spacing:0.06em">Pilares</div>
+        </div>
+      </div>
+      <button onclick="showSection('fases')" class="btn-cta">Empezar el plan de estudios →</button>
+      <button onclick="continueLearning()" class="btn-secondary" id="btn-continue" style="display:none">
+        Continuar donde lo dejé →
+      </button>
+    </div>
+    <div class="phases-overview-grid" id="phasesOverviewGrid"></div>
+  </section>
+
+  <!-- ══════════════════════════ FASES ══════════════════════════ -->
+  <section id="fases-section">
+    <div class="phase-tabs" id="phaseTabs"></div>
+    <div id="phaseContent"></div>
+  </section>
+
+  <!-- ══════════════════════════ SIMULATOR ══════════════════════════ -->
+  <section id="simulator-section">
+    <div class="progress-wrap card mb16">
+      <div class="progress-row">
+        <div class="progress-stats">
+          <div class="stat-item">Respondidos: <strong id="stat-answered">0</strong><span>/100</span></div>
+          <div class="stat-item">Aciertos: <strong id="stat-correct" class="text-green">0</strong></div>
+          <div class="stat-item">WR Quiz: <strong id="stat-wr">—</strong></div>
+          <div class="stat-item">Validos: <strong id="stat-valid" class="text-green">0</strong> | No entrar: <strong id="stat-invalid" class="text-red">0</strong></div>
+        </div>
+        <button class="sim-btn" onclick="resetProgress()" style="font-size:0.78rem;padding:5px 12px;">Reiniciar progreso</button>
+      </div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
+    </div>
+
+    <div class="sim-header">
+      <div class="sim-nav">
+        <button class="sim-btn" id="btnPrev" onclick="prevCase()">← Anterior</button>
+        <button class="sim-btn" id="btnNext" onclick="nextCase()">Siguiente →</button>
+        <div class="sim-goto">
+          <span class="text-sec" style="font-size:0.83rem;">Ir a:</span>
+          <input type="number" id="gotoInput" min="1" max="100" placeholder="1">
+          <button class="sim-btn" onclick="gotoCase()">OK</button>
+        </div>
+      </div>
+      <div class="sim-counter">Caso <strong id="caseNum">1</strong> <span>/ 100</span></div>
+    </div>
+
+    <div class="case-title-card">
+      <div style="flex:1">
+        <div class="case-title" id="caseTitle"></div>
+        <div class="case-meta" id="caseMeta"></div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-panel">
+        <div class="chart-panel-header">Contexto H4</div>
+        <canvas id="h4Chart" width="540" height="220"></canvas>
+      </div>
+      <div class="chart-panel">
+        <div class="chart-panel-header">Entrada H1 / M15</div>
+        <canvas id="entryChart" width="540" height="220"></canvas>
+      </div>
+    </div>
+
+    <div class="analysis-row" id="analysisPanels"></div>
+
+    <div class="quiz-card" id="quizCard">
+      <div id="quizInput">
+        <div class="quiz-question">¿Entrarías en este trade?</div>
+        <div class="quiz-btns">
+          <button class="btn-yes" id="btnSi" onclick="answerQuiz(true)">SI — Entrar</button>
+          <button class="btn-no"  id="btnNo" onclick="answerQuiz(false)">NO — No entrar</button>
+        </div>
+      </div>
+      <div id="quizResult" class="quiz-result"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════ PROGRESO ══════════════════════════ -->
+  <section id="progreso-section">
+    <div class="mb24">
+      <h1 class="mb8">Mi Progreso</h1>
+      <p>Tu avance en el plan de estudios completo.</p>
+    </div>
+    <div id="progressContent"></div>
+  </section>
+
+  <!-- ══════════════════════════ GLOSARIO ══════════════════════════ -->
+  <section id="glosario-section">
+    <div class="mb24">
+      <h1 class="mb8">Glosario — Todos los terminos explicados</h1>
+      <p>Eres nuevo en esto y es normal no entender el lenguaje. Aqui tienes cada termino explicado en castellano simple, sin jerga.</p>
+    </div>
+    <div class="glosario-grid">
+      <div class="glosario-card">
+        <div class="glosario-term">PIPs <span class="glosario-tag tag-en">EN</span></div>
+        <div class="glosario-def">Un <strong>pip</strong> es la unidad minima de movimiento del precio en Forex. En EUR/USD, 1 pip = 0.0001 (la cuarta cifra decimal). Si el precio pasa de 1.0850 a 1.0851, subio 1 pip.</div>
+        <div class="glosario-example">Ejemplo: Stop Loss a 20 pips significa que el precio tiene que moverse 0.0020 en tu contra para cerrar la operacion.</div>
+      </div>
+      <div class="glosario-card">
+        <div class="glosario-term">H4 / D1 / M15 <span class="glosario-tag tag-en">EN</span></div>
+        <div class="glosario-def"><strong>Temporalidades</strong>: la escala de tiempo del grafico. H4 = cada vela son 4 horas. D1 = cada vela es 1 dia entero. M15 = cada vela son 15 minutos. Es como hacer zoom in/out del mismo grafico.</div>
+        <div class="glosario-example">Uso D1 para ver la tendencia de la semana, H4 para el sesgo del dia, M15 para el momento exacto de entrar.</div>
+      </div>
+      <div class="glosario-card">
+        <div class="glosario-term">LONG / SHORT <span class="glosario-tag tag-en">EN</span></div>
+        <div class="glosario-def"><strong>LONG</strong> = comprar (esperas que el precio suba). <strong>SHORT</strong> = vender (esperas que baje). En Forex puedes ganar tanto si sube como si baja.</div>
+        <div class="glosario-example">Si el EUR/USD esta en tendencia alcista, buscas operaciones LONG (compras).</div>
+      </div>
+      <div class="glosario-card">
+        <div class="glosario-term">Stop Loss (SL) <span class="glosario-tag tag-en">EN</span></div>
+        <div class="glosario-def">El <strong>Stop Loss</strong> es tu nivel de proteccion. Si el precio llega ahi, tu operacion se cierra automaticamente con una perdida controlada. Sin SL, puedes perder toda tu cuenta en un mal trade.</div>
+        <div class="glosario-example">Entras LONG a 1.0850, SL en 1.0820. Si baja a 1.0820, la operacion se cierra y pierdes el 1% de tu capital.</div>
+      </div>
+      <div class="glosario-card">
+        <div class="glosario-term">Take Profit (TP) <span class="glosario-tag tag-en">EN</span></div>
+        <div class="glosario-def">El <strong>Take Profit</strong> es tu objetivo de beneficio. Cuando el precio llega ahi, la operacion se cierra automaticamente con ganancia. No necesitas estar mirando la pantalla.</div>
+        <div class="glosario-example">TP1 = primer objetivo (cierras mitad de la posicion y mueves SL a breakeven). TP2 = segundo objetivo mas lejano.</div>
+      </div>
+      <div class="glosario-card">
+        <div class="glosario-term">R:R (Risk/Reward) <span class="glosario-tag tag-en">EN</span></div>
+        <div class="glosario-def">La relacion entre lo que arriesgas y lo que puedes ganar. R:R 1:2 = arriesgas 1, puedes ganar 2. Con R:R 1:2 puedes tener solo 40% de aciertos y seguir siendo rentable.</div>
+        <div class="glosario-example">SL = 20 pips, TP = 40 pips. R:R = 1:2. Si ganas 2 de cada 5 trades, ya eres rentable.</div>
+      </div>
+      <div class="glosario-card">
+        <div class="glosario-term">HH / HL / LH / LL <span class="glosario-tag tag-en">EN</span></div>
+        <div class="glosario-def"><strong>HH</strong> (Higher High) = maximo MAS ALTO que el anterior. <strong>HL</strong> (Higher Low) = minimo MAS ALTO que el anterior. <strong>LH</strong> = maximo mas bajo. <strong>LL</strong> = minimo mas bajo.</div>
+        <div class="glosario-example">HH + HL repetidos = tendencia alcista. LH + LL = tendencia bajista. Simple como eso.</div>
+      </div>
+      <div class="glosario-card">
+        <div class="glosario-term">SWEEP / Barrido <span class="glosario-tag tag-esp">ESP</span></div>
+        <div class="glosario-def">El precio traspasa brevemente un nivel importante (donde hay stops acumulados) y luego vuelve. La vela tiene una <strong>sombra (wick) larga</strong> hacia ese lado pero cierra al otro lado. Los institucionales activaron esos stops a proposito para conseguir liquidez.</div>
+        <div class="glosario-example">Equal Lows en 1.0820. El precio baja a 1.0812 con wick largo pero cierra en 1.0830. Sweep confirmado. Ahora puede subir.</div>
+      </div>
+      <div class="glosario-card">
+        <div class="glosario-term">Equal Highs / Equal Lows (EQH / EQL) <span class="glosario-tag tag-en">EN</span></div>
+        <div class="glosario-def"><strong>EQH</strong> = dos o mas maximos en el mismo nivel de precio. <strong>EQL</strong> = dos o mas minimos en el mismo nivel. Son un iman para el precio porque acumulan muchisimos stops en el mismo punto. Son <strong>liquidez interna</strong> (dentro del rango actual). La <strong>liquidez externa</strong> la forman los Swing High/Low de H4, el <strong>PDH/PDL</strong> (maximo/minimo del dia anterior) y el <strong>PWH/PWL</strong> (maximo/minimo de la semana anterior) — el precio siempre va a buscar estos niveles antes de revertir.</div>
+        <div class="glosario-example">El precio reboto en 1.0950 tres veces sin superarlo (EQH = liquidez interna). El PDH de ayer era 1.0970 (liquidez externa). El precio los barre en orden antes de dar la vuelta.</div>
+      </div>
+      <div class="glosario-card">
+        <div class="glosario-term">Zona de Demanda y Oferta <span class="glosario-tag tag-esp">ESP</span></div>
+        <div class="glosario-def"><strong>Demanda</strong> = zona de compras institucionales (de donde salio un impulso alcista). <strong>Oferta</strong> = zona de ventas institucionales (de donde salio un impulso bajista). Cuando el precio regresa, los institucionales actuan de nuevo.</div>
+        <div class="glosario-example">Impulso alcista fuerte desde 1.0830-1.0850. Esa area es zona de demanda. La proxima vez que el precio llegue ahi: alta probabilidad de rebote hacia arriba.</div>
+      </div>
+      <div class="glosario-card">
+        <div class="glosario-term">Zona FRESCA vs GASTADA <span class="glosario-tag tag-esp">ESP</span></div>
+        <div class="glosario-def"><strong>Fresca</strong> = primera o segunda visita, las ordenes institucionales siguen ahi. <strong>Gastada</strong> = 3+ visitas, cada toque ha consumido mas ordenes hasta que no quedan. La zona gastada ya no rebota, el precio la atraviesa.</div>
+        <div class="glosario-example">Primera visita = mucha probabilidad de rebote. Tercera visita = la zona ya no funciona. No operes en zonas gastadas.</div>
+      </div>
+      <div class="glosario-card">
+        <div class="glosario-term">VELA / Candle <span class="glosario-tag tag-esp">ESP</span></div>
+        <div class="glosario-def">Cada barra del grafico. Muestra 4 precios del periodo: apertura (open), cierre (close), maximo (high) y minimo (low). Verde = precio subio. Roja = precio bajo. Las lineas finas = sombras (wicks).</div>
+        <div class="glosario-example">Vela verde con sombra larga abajo en zona de demanda = el precio intento bajar pero reboto fuertemente arriba.</div>
+      </div>
+      <div class="glosario-card">
+        <div class="glosario-term">SESGO del dia (Bias) <span class="glosario-tag tag-esp">ESP</span></div>
+        <div class="glosario-def">La <strong>direccion que eliges</strong> para operar ese dia basandote en el H4/D1. Si H4 es alcista, tu sesgo es LONG (solo buscas compras). Si es bajista, solo buscas ventas. El sesgo es tu filtro mas importante. <strong>Regla de conflicto: si H4 es alcista pero D1 es bajista, el D1 manda</strong> — el H4 alcista es solo un retroceso dentro del bajista D1. Opera solo en la direccion del D1, o no operes ese dia. El timeframe mayor siempre filtra al menor.</div>
+        <div class="glosario-example">D1 bajista (LH/LL) + H4 alcista = el H4 es solo un rebote. Sesgo real del dia: BAJISTA. No entres LONG — espera o busca ventas cuando el H4 gire a bajista tambien.</div>
+      </div>
+      <div class="glosario-card">
+        <div class="glosario-term">ENGULFING <span class="glosario-tag tag-en">EN</span></div>
+        <div class="glosario-def">Vela que "se come" a la anterior: su cuerpo es mas grande y cubre la vela previa completamente. <strong>Engulfing alcista</strong> (verde que engloba a una roja) = los compradores tomaron el control. Es la senal de entrada en M15.</div>
+        <div class="glosario-example">En zona de demanda en M15: vela roja, luego vela verde mas grande que la engloba. Engulfing alcista confirmado. Entrar LONG.</div>
+      </div>
+      <div class="glosario-card">
+        <div class="glosario-term">BREAKEVEN <span class="glosario-tag tag-en">EN</span></div>
+        <div class="glosario-def">Mover el Stop Loss hasta el punto de entrada. Cuando el precio alcanza TP1, mueves tu SL a donde entraste. Si el precio se da la vuelta despues, sales sin perder nada. Ya no puedes perder en ese trade.</div>
+        <div class="glosario-example">Entras a 1.0850. Precio llega a TP1 (1.0880). Mueves SL a 1.0850. Ahora el peor resultado posible es 0 perdidas.</div>
+      </div>
+      <div class="glosario-card">
+        <div class="glosario-term">CONFLUENCIA <span class="glosario-tag tag-esp">ESP</span></div>
+        <div class="glosario-def">Cuando varios elementos de tu estrategia coinciden en el mismo punto al mismo tiempo. A mas confluencia, mayor probabilidad. Los 3 pilares juntos = alta confluencia. Si solo hay 1 pilar = no hay setup.</div>
+        <div class="glosario-example">Sweep ocurre en la zona de demanda que a su vez esta en un HL de H4. Triple confluencia. Probabilidad alta de subida.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════ OBJETIVOS ══════════════════════════ -->
+  <section id="objetivos-section">
+    <div class="obj-section-header fade-in">
+      <h1>Objetivos</h1>
+      <p style="color:var(--text-sec);font-size:0.93rem;">Tu hoja de ruta. Desde el por qué hasta el día a día.</p>
+    </div>
+    <div id="objetivosContent"></div>
+  </section>
+
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="_chart.js"></script>
+<script src="_cases.js"></script>
+<script src="_edu.js"></script>
+<script src="_lessons.js"></script>
+<script>
+// ─────────────────────────────────────────────────────────────
+// FIREBASE SYNC
+// ─────────────────────────────────────────────────────────────
+const _FB_CONFIG = {
+  apiKey: "AIzaSyCfHLA2zP2LbyQGdNcktf-tyVIMc0efuCg",
+  authDomain: "trading-pablo-6203b.firebaseapp.com",
+  projectId: "trading-pablo-6203b",
+  storageBucket: "trading-pablo-6203b.firebasestorage.app",
+  messagingSenderId: "632226561438",
+  appId: "1:632226561438:web:0686ba50521b97d6e26a8f"
+};
+const _FB_DOC = 'users/pablo-trading';
+const _SYNC_KEYS = ['trading_progress','trading_calendar','eurusd_quiz',
+                    'obj_short_items','obj_long_items','obj_diary','obj_affirmations'];
+let _db = null;
+
+function syncSave(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+  if (_db) _db.doc(_FB_DOC).set({ [key]: value }, { merge: true }).catch(() => {});
+}
+
+function _applyCloudData() {
+  progress          = JSON.parse(localStorage.getItem('trading_progress') || '{}');
+  calData           = JSON.parse(localStorage.getItem('trading_calendar')  || '{}');
+  state.quizAnswers = JSON.parse(localStorage.getItem('eurusd_quiz') || '{}');
+  const _si = JSON.parse(localStorage.getItem('obj_short_items') || 'null');
+  objShortItems   = _si  || OBJ_SHORT_DEFAULTS.map((t, i) => ({ id: i + 1, text: t, done: false }));
+  const _li = JSON.parse(localStorage.getItem('obj_long_items') || 'null');
+  objLongItems    = _li  || OBJ_LONG_DEFAULTS.map(d => Object.assign({}, d));
+  objDiary        = JSON.parse(localStorage.getItem('obj_diary') || '[]');
+  const _af = JSON.parse(localStorage.getItem('obj_affirmations') || 'null');
+  objAffirmations = _af  || OBJ_DEFAULT_AFFIRMATIONS.slice();
+  const s = state.activeSection;
+  if      (s === 'home')      renderPhasesOverview();
+  else if (s === 'progreso')  renderProgressSection();
+  else if (s === 'objetivos') renderObjetivosSection();
+}
+
+async function _initSync() {
+  try {
+    firebase.initializeApp(_FB_CONFIG);
+    _db = firebase.firestore();
+    const snap = await _db.doc(_FB_DOC).get();
+    if (snap.exists) {
+      const d = snap.data();
+      _SYNC_KEYS.forEach(k => { if (d[k] !== undefined) localStorage.setItem(k, JSON.stringify(d[k])); });
+      _applyCloudData();
+    }
+    _db.doc(_FB_DOC).onSnapshot(snap => {
+      if (!snap.exists || snap.metadata.hasPendingWrites) return;
+      const d = snap.data();
+      _SYNC_KEYS.forEach(k => { if (d[k] !== undefined) localStorage.setItem(k, JSON.stringify(d[k])); });
+      _applyCloudData();
+    });
+  } catch (e) { console.warn('Firebase sync unavailable:', e); }
+}
+
+// ─────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────
+let progress = JSON.parse(localStorage.getItem('trading_progress') || '{}');
+let calData  = JSON.parse(localStorage.getItem('trading_calendar')  || '{}');
+
+const state = {
+  currentCase: 0,
+  quizAnswers: JSON.parse(localStorage.getItem('eurusd_quiz') || '{}'),
+  activeSection: 'home',
+  activeTutorialTab: 'direction',
+};
+
+function saveProgress() {
+  syncSave('eurusd_quiz', state.quizAnswers);
+}
+
+// ─────────────────────────────────────────────────────────────
+// PHASE META
+// ─────────────────────────────────────────────────────────────
+const PHASE_META = [
+  { phase: 0, label: 'Fase 0', title: 'Como funciona el mercado', dur: '2-3 semanas', color: '#3b82f6' },
+  { phase: 1, label: 'Fase 1', title: 'Leer el mercado',          dur: '3-4 semanas', color: '#26a69a' },
+  { phase: 2, label: 'Fase 2', title: 'Los 3 pilares',            dur: '4-6 semanas', color: '#8b5cf6' },
+  { phase: 3, label: 'Fase 3', title: 'Gestion de riesgo',        dur: 'Permanente',  color: '#fbbf24' },
+  { phase: 4, label: 'Fase 4', title: 'Software y herramientas',  dur: '1 semana',    color: '#ec4899' },
+  { phase: 5, label: 'Fase 5', title: 'Practica',                 dur: '3+ meses',    color: '#10b981' },
+];
+
+// ─────────────────────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────────────────────
+function showSection(name) {
+  state.activeSection = name;
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+  const sec = document.getElementById(name + '-section');
+  if (sec) sec.classList.add('active');
+
+  const btnMap = { home: 'inicio', fases: 'plan', simulator: 'simul', progreso: 'progreso', glosario: 'glosario' };
+  const kw = btnMap[name] || name;
+  const btn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.textContent.toLowerCase().includes(kw));
+  if (btn) btn.classList.add('active');
+
+  if (name === 'home')      { renderPhasesOverview(); }
+  if (name === 'fases')     { renderPhaseTabs(); showPhase(activePhase); }
+  if (name === 'simulator') { setTimeout(() => loadCase(state.currentCase), 60); }
+  if (name === 'progreso')  { renderProgressSection(); }
+  if (name === 'objetivos') { renderObjetivosSection(); }
+}
+
+// ─────────────────────────────────────────────────────────────
+// HOME SECTION
+// ─────────────────────────────────────────────────────────────
+function renderPhasesOverview() {
+  const grid = document.getElementById('phasesOverviewGrid');
+  if (!grid || !window.LESSONS) return;
+  grid.innerHTML = PHASE_META.map(pm => {
+    const phaseLessons = window.LESSONS.filter(l => l.phase === pm.phase);
+    const done = phaseLessons.filter(l => progress[l.id]).length;
+    const pct  = phaseLessons.length ? Math.round(done / phaseLessons.length * 100) : 0;
+    return `
+      <div class="phase-overview-card" onclick="showPhase(${pm.phase});showSection('fases')" style="--_phase-color:${pm.color}">
+        <div class="phase-num" style="color:${pm.color}">${pm.label}</div>
+        <h3>${pm.title}</h3>
+        <div class="phase-dur">${pm.dur} &middot; ${phaseLessons.length} lecciones</div>
+        <div class="phase-mini-bar"><div class="phase-mini-bar-fill" style="width:${pct}%;background:linear-gradient(90deg,${pm.color},${pm.color}aa)"></div></div>
+        <div class="phase-pct">${done}/${phaseLessons.length} completadas &middot; ${pct}%</div>
+      </div>`;
+  }).join('');
+
+  const totalDone = Object.keys(progress).filter(k => progress[k]).length;
+  const btnCont = document.getElementById('btn-continue');
+  if (btnCont) btnCont.style.display = totalDone > 0 ? 'inline-block' : 'none';
+}
+
+function continueLearning() {
+  if (!window.LESSONS) return;
+  const nextLesson = window.LESSONS.find(l => !progress[l.id]);
+  if (nextLesson) {
+    showSection('fases');
+    showPhase(nextLesson.phase);
+    setTimeout(() => openLesson(nextLesson.id), 150);
+  }
+}
+
+function openLesson(id) {
+  const body = document.getElementById('lesson-body-' + id);
+  if (body && !body.classList.contains('open')) toggleLesson(id);
+}
+
+// ─────────────────────────────────────────────────────────────
+// FASES SECTION
+// ─────────────────────────────────────────────────────────────
+let activePhase  = 0;
+let activeLesson = null;
+
+function renderPhaseTabs() {
+  const container = document.getElementById('phaseTabs');
+  if (!container) return;
+  container.innerHTML = PHASE_META.map((pm, i) => `
+    <button class="phase-tab-btn ${i === activePhase ? 'active' : ''}"
+            style="${i === activePhase ? 'background:'+pm.color+';color:white;border-color:'+pm.color : ''}"
+            onclick="showPhase(${i})">${pm.label}: ${pm.title}</button>`).join('');
+}
+
+function showPhase(phase) {
+  activePhase = phase;
+  document.querySelectorAll('.phase-tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === phase);
+    b.style.background   = i === phase ? PHASE_META[phase].color : '';
+    b.style.color        = i === phase ? 'white' : '';
+    b.style.borderColor  = i === phase ? PHASE_META[phase].color : '';
+  });
+  renderPhaseContent(phase);
+}
+
+function renderPhaseContent(phase) {
+  if (!window.LESSONS) return;
+  const lessons = window.LESSONS.filter(l => l.phase === phase);
+  const pm   = PHASE_META[phase];
+  const done = lessons.filter(l => progress[l.id]).length;
+  const pct  = lessons.length ? Math.round(done / lessons.length * 100) : 0;
+
+  const html = `
+    <div class="phase-header">
+      <div>
+        <div style="color:${pm.color};font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">${pm.label}</div>
+        <h2 style="font-size:1.3rem;margin-bottom:4px">${pm.title}</h2>
+        <div style="font-size:0.85rem;color:var(--text-mut)">${pm.dur} &middot; ${lessons.length} lecciones &middot; ${done}/${lessons.length} completadas</div>
+      </div>
+      <div class="phase-big-bar">
+        <div class="phase-big-bar-wrap"><div class="phase-big-bar-fill" style="width:${pct}%;background:${pm.color}"></div></div>
+        <span>${pct}%</span>
+      </div>
+    </div>
+    <div class="lessons-list">
+      ${lessons.map(l => renderLessonCard(l)).join('')}
+    </div>`;
+
+  document.getElementById('phaseContent').innerHTML = html;
+
+  if (activeLesson) {
+    const card = document.getElementById('lesson-body-' + activeLesson);
+    if (card) { card.classList.add('open'); const chev = document.getElementById('chev-' + activeLesson); if (chev) chev.classList.add('open'); }
+  }
+}
+
+function renderLessonCard(l) {
+  const isDone     = !!progress[l.id];
+  const numClass   = isDone ? 'done' : 'active';
+  const numContent = isDone ? '&#10003;' : l.id;
+
+  return `
+    <div class="lesson-card" id="lesson-card-${l.id}">
+      <div class="lesson-card-header" onclick="toggleLesson(${l.id})">
+        <div class="lesson-num ${numClass}">${numContent}</div>
+        <div class="lesson-info">
+          <div class="lesson-title">${l.title}</div>
+          <div class="lesson-subtitle">${l.subtitle || ''}</div>
+        </div>
+        <div class="lesson-meta">
+          ${l.duration ? `<span class="lesson-dur">${l.duration} min</span>` : ''}
+          ${isDone ? '<span class="lesson-done-badge">&#10003; Completada</span>' : ''}
+          <span class="lesson-chevron" id="chev-${l.id}">&#x203A;</span>
+        </div>
+      </div>
+      <div class="lesson-card-body" id="lesson-body-${l.id}">
+        ${l.eduChart && !l.realChart ? `<canvas id="edu-canvas-${l.id}" width="860" height="${l.eduChartHeight || 280}"></canvas>` : ''}
+        ${l.realChart ? renderRealChart(l.realChart.img, l.realChart.symbol, l.realChart.timeframe, l.realChart.label, l.realChart.caption) : ''}
+        ${l.realChart2 ? renderRealChart(l.realChart2.img, l.realChart2.symbol, l.realChart2.timeframe, l.realChart2.label, l.realChart2.caption) : ''}
+        <div class="lesson-content">${l.content || ''}</div>
+        ${l.keyTerms && l.keyTerms.length ? renderKeyTerms(l.keyTerms) : ''}
+        ${renderResources(l)}
+        ${l.quiz ? renderLessonQuiz(l) : ''}
+        ${renderHomework(l)}
+        ${renderCompleteBtn(l)}
+      </div>
+    </div>`;
+}
+
+function buildEmbeddedTutorial(tab) {
+  if (!STEP_DATA || !STEP_DATA[tab]) return '';
+  const td = STEP_DATA[tab];
+  const p  = td.prefixId;
+  const nSteps = td.steps.length;
+  return `
+  <div class="step-wrap mt16" id="step-wrap-${p}">
+    <div class="step-topbar">
+      <div class="step-dots" id="${p}-dots"></div>
+      <span class="step-counter-txt">Paso <span id="${p}-num">1</span> de <span id="${p}-total">${nSteps}</span></span>
+      <div class="step-nav-btns">
+        <button class="sim-btn" id="${p}-prev" onclick="prevStep('${tab}')">← Anterior</button>
+        <button class="sim-btn" id="${p}-next" onclick="nextStep('${tab}')">Siguiente →</button>
+      </div>
+    </div>
+    <div class="step-narration">
+      <div class="step-title" id="${p}-title"></div>
+      <div class="step-text"  id="${p}-text"></div>
+    </div>
+    <div class="step-canvas-area">
+      <canvas id="${td.canvasId}" width="860" height="300"></canvas>
+    </div>
+    <div class="step-hint" id="${p}-hint" style="display:none"></div>
+  </div>`;
+}
+
+function toggleLesson(id) {
+  const body = document.getElementById('lesson-body-' + id);
+  const chev = document.getElementById('chev-' + id);
+  if (!body) return;
+  const isOpen = body.classList.contains('open');
+
+  document.querySelectorAll('.lesson-card-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.lesson-chevron').forEach(c => c.classList.remove('open'));
+
+  if (!isOpen) {
+    body.classList.add('open');
+    if (chev) chev.classList.add('open');
+    activeLesson = id;
+
+    const lesson = window.LESSONS && window.LESSONS.find(l => l.id === id);
+    if (lesson && lesson.eduChart && window.EduCharts && window.EduCharts[lesson.eduChart]) {
+      setTimeout(() => {
+        const c = document.getElementById('edu-canvas-' + id);
+        if (c) window.EduCharts[lesson.eduChart](c);
+      }, 50);
+    }
+    // Handle embedded step tutorials (lessons 10-13)
+    setTimeout(() => {
+      const embed = body.querySelector('.lesson-tutorial-embed');
+      if (embed && !embed.dataset.built) {
+        const tab = embed.dataset.tab;
+        embed.dataset.built = '1';
+        embed.insertAdjacentHTML('afterend', buildEmbeddedTutorial(tab));
+        initStepTab(tab);
+      }
+    }, 30);
+  } else {
+    activeLesson = null;
+  }
+}
+
+function renderKeyTerms(terms) {
+  return `<div class="key-terms-box">
+    <div style="font-size:0.78rem;font-weight:700;color:var(--text-mut);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Terminos de esta leccion</div>
+    ${terms.map(t => `<div class="key-term"><strong>${t.term}:</strong> ${t.def}</div>`).join('')}
+  </div>`;
+}
+
+function renderLessonQuiz(l) {
+  if (!l.quiz) return '';
+  return `<div class="lesson-quiz" id="quiz-${l.id}">
+    <div class="quiz-q">${l.quiz.question}</div>
+    ${l.quiz.options.map((opt, i) =>
+      `<button class="quiz-option" onclick="answerLessonQuiz(${l.id}, ${i})" id="qopt-${l.id}-${i}">${opt}</button>`
+    ).join('')}
+    <div class="quiz-explanation" id="quiz-exp-${l.id}">${l.quiz.explanation}</div>
+  </div>`;
+}
+
+function answerLessonQuiz(lessonId, chosenIdx) {
+  const lesson = window.LESSONS && window.LESSONS.find(l => l.id === lessonId);
+  if (!lesson || !lesson.quiz) return;
+  const isCorrect = chosenIdx === lesson.quiz.correct;
+  document.querySelectorAll(`[id^="qopt-${lessonId}-"]`).forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === lesson.quiz.correct) btn.classList.add('correct');
+    else if (i === chosenIdx && !isCorrect) btn.classList.add('wrong');
+  });
+  const expEl = document.getElementById('quiz-exp-' + lessonId);
+  if (expEl) expEl.style.display = 'block';
+}
+
+function renderHomework(l) {
+  if (!l.homework || !l.homework.length) return '';
+  const items = l.homework.map(h => `
+    <div class="homework-card">
+      <div class="hw-header">
+        <span class="hw-icon">${h.icon || '📝'}</span>
+        <span class="hw-title">${h.title}</span>
+        <span class="hw-tool">${h.tool}</span>
+        <span class="hw-dur">${h.duration ? h.duration + ' min' : ''}</span>
+      </div>
+      <div class="hw-task">${h.task}</div>
+      ${h.deliverable ? '<div class="hw-deliverable"><strong>✓ Objetivo:</strong> ' + h.deliverable + '</div>' : ''}
+    </div>
+  `).join('');
+  return '<div class="homework-section"><div class="homework-title">✏️ Deberes — Práctica</div>' + items + '</div>';
+}
+
+function renderRealChart(imgFile, symbol, timeframe, label, caption) {
+  return `<div class="real-chart-wrap">
+    <div class="real-chart-header">
+      <span class="real-chart-badge">📊 TradingView Real</span>
+      <span class="real-chart-symbol">${symbol || 'EUR/USD'}</span>
+      <span class="real-chart-tf">${timeframe || 'H4'}</span>
+      <span class="real-chart-label">${label || ''}</span>
+    </div>
+    <img src="img/${imgFile}" class="real-chart-img" alt="${label || imgFile}"
+         style="display:block;width:100%;max-height:480px;object-fit:cover;object-position:top;cursor:zoom-in;"
+         onerror="this.closest('.real-chart-wrap').style.display='none'"
+         onclick="(function(img){
+           if(img._zoomed){
+             img.style.cssText='display:block;width:100%;max-height:480px;object-fit:cover;object-position:top;cursor:zoom-in;';
+             img._zoomed=false;
+           } else {
+             img.style.cssText='display:block;width:100%;max-height:none;object-fit:unset;cursor:zoom-out;';
+             img._zoomed=true;
+           }
+         })(this)">
+    ${caption ? `<div class="real-chart-caption">${caption}</div>` : ''}
+  </div>`;
+}
+
+function renderResources(l) {
+  const res = (l.resources && l.resources.length) ? l.resources : ((l.quiz && l.quiz.resources && l.quiz.resources.length) ? l.quiz.resources : []);
+  if (!res.length) return '';
+  const isYT = (url) => url && (url.includes('youtube.com') || url.includes('youtu.be'));
+  const cards = res.map(r => {
+    const badge = isYT(r.url) ? '<span class="resource-yt-badge">YT</span>' : '<span class="resource-yt-badge" style="background:#334155">WEB</span>';
+    return '<a href="' + r.url + '" target="_blank" rel="noopener noreferrer" class="resource-card">' +
+      badge +
+      '<div class="resource-info">' +
+        '<div class="resource-title">' + (r.title || '') + '</div>' +
+        '<div class="resource-channel">' + (r.channel || '') + '</div>' +
+        (r.desc ? '<div class="resource-desc">' + r.desc + '</div>' : '') +
+      '</div></a>';
+  }).join('');
+  return '<div class="lesson-resources"><div class="lesson-resources-title"><span style="color:#cc0000;font-size:1rem">&#9654;</span> Videos recomendados por mentores</div>' + cards + '</div>';
+}
+
+function renderCompleteBtn(l) {
+  const isDone = !!progress[l.id];
+  return `<button class="btn-complete ${isDone ? 'done' : ''}" id="complete-btn-${l.id}" onclick="markLessonComplete(${l.id})">
+    ${isDone ? '&#10003; Leccion completada' : 'Marcar como completada &#10003;'}
+  </button>`;
+}
+
+function markLessonComplete(id) {
+  progress[id] = true;
+  syncSave('trading_progress', progress);
+
+  const btn = document.getElementById('complete-btn-' + id);
+  if (btn) { btn.textContent = '✓ Leccion completada'; btn.classList.add('done'); }
+  const numEl = document.querySelector('#lesson-card-' + id + ' .lesson-num');
+  if (numEl) { numEl.textContent = '✓'; numEl.className = 'lesson-num done'; }
+  const meta = document.querySelector('#lesson-card-' + id + ' .lesson-meta');
+  if (meta && !meta.querySelector('.lesson-done-badge')) {
+    meta.insertAdjacentHTML('afterbegin', '<span class="lesson-done-badge">✓ Completada</span>');
+  }
+  updateProgressUI();
+  renderPhasesOverview();
+  showPhaseCompletionIfDone(id);
+}
+
+function showPhaseCompletionIfDone(lessonId) {
+  if (!window.LESSONS) return;
+  const lesson = window.LESSONS.find(l => l.id === lessonId);
+  if (!lesson) return;
+  const phaseLessons = window.LESSONS.filter(l => l.phase === lesson.phase);
+  const allDone = phaseLessons.every(l => progress[l.id]);
+  if (allDone) {
+    const pm = PHASE_META[lesson.phase];
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#16a34a;color:white;padding:12px 24px;border-radius:8px;font-weight:600;z-index:9999;animation:fadeIn 0.3s ease';
+    toast.textContent = '¡' + pm.label + ' completada!';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+}
+
+function updateProgressUI() {
+  if (state.activeSection === 'progreso') renderProgressSection();
+  if (state.activeSection === 'fases')    renderPhaseContent(activePhase);
+  if (state.activeSection === 'home')     renderPhasesOverview();
+}
+
+// ─────────────────────────────────────────────────────────────
+// PROGRESO SECTION
+// ─────────────────────────────────────────────────────────────
+function renderProgressSection() {
+  const total = window.LESSONS ? window.LESSONS.length : 21;
+  const done  = Object.keys(progress).filter(k => progress[k]).length;
+  const pct   = total ? Math.round(done / total * 100) : 0;
+
+  let html = `
+    <div class="prog-overall">
+      <div class="prog-big-number">${pct}%</div>
+      <div class="prog-big-label">completado &middot; ${done} de ${total} lecciones</div>
+      <div class="prog-bar-big"><div class="prog-bar-big-fill" style="width:${pct}%"></div></div>
+      <div style="font-size:0.85rem;color:var(--text-mut);margin-top:8px">
+        Tiempo estimado restante: ${estimateTimeLeft()} min de lectura
+      </div>
+    </div>
+    <div class="prog-phases">`;
+
+  PHASE_META.forEach(pm => {
+    const phaseLessons = window.LESSONS ? window.LESSONS.filter(l => l.phase === pm.phase) : [];
+    const pDone = phaseLessons.filter(l => progress[l.id]).length;
+    const pPct  = phaseLessons.length ? Math.round(pDone / phaseLessons.length * 100) : 0;
+    html += `
+      <div class="prog-phase-card">
+        <div class="prog-phase-header">
+          <span style="color:${pm.color};font-weight:700">${pm.label}: ${pm.title}</span>
+          <span style="color:var(--text-mut);font-size:0.83rem">${pDone}/${phaseLessons.length}</span>
+        </div>
+        <div class="prog-phase-bar"><div class="prog-phase-bar-fill" style="width:${pPct}%;background:${pm.color}"></div></div>
+        <div class="prog-lessons-list">
+          ${phaseLessons.map(l => `
+            <div class="prog-lesson-item" onclick="goToLesson(${l.id})">
+              <span class="prog-lesson-check ${progress[l.id] ? 'done' : ''}">${progress[l.id] ? '✓' : '○'}</span>
+              <span class="prog-lesson-name ${progress[l.id] ? 'done' : ''}">${l.title}</span>
+              <span class="prog-lesson-dur">${l.duration || 0} min</span>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  });
+
+  html += `</div>
+    <button onclick="resetAllProgress()" class="sim-btn" style="margin-top:24px;color:var(--acc-red);">
+      Resetear todo el progreso
+    </button>
+    ${buildCalendarSectionHTML()}`;
+
+  const el = document.getElementById('progressContent');
+  if (el) el.innerHTML = html;
+}
+
+function estimateTimeLeft() {
+  if (!window.LESSONS) return 0;
+  return window.LESSONS.filter(l => !progress[l.id]).reduce((s, l) => s + (l.duration || 0), 0);
+}
+
+function goToLesson(id) {
+  if (!window.LESSONS) return;
+  const lesson = window.LESSONS.find(l => l.id === id);
+  if (!lesson) return;
+  showSection('fases');
+  showPhase(lesson.phase);
+  setTimeout(() => {
+    const body = document.getElementById('lesson-body-' + id);
+    if (body && !body.classList.contains('open')) toggleLesson(id);
+  }, 150);
+}
+
+function resetAllProgress() {
+  if (!confirm('¿Resetear todo el progreso? Esto no se puede deshacer.')) return;
+  progress = {};
+  localStorage.removeItem('trading_progress');
+  updateProgressUI();
+  renderPhasesOverview();
+  renderProgressSection();
+}
+
+// ─────────────────────────────────────────────────────────────
+// CALENDARIO DE CONSISTENCIA
+// ─────────────────────────────────────────────────────────────
+function formatDateKey(date) {
+  return date.getFullYear() + '-' +
+    String(date.getMonth() + 1).padStart(2, '0') + '-' +
+    String(date.getDate()).padStart(2, '0');
+}
+
+function calcStreak() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  let streak = 0, skippedToday = false;
+  const d = new Date(today);
+  for (let i = 0; i < 800; i++) {
+    const key = formatDateKey(d);
+    if (calData[key] && calData[key].status === 'done') {
+      streak++;
+    } else if (!skippedToday && d.getTime() === today.getTime()) {
+      skippedToday = true;
+    } else { break; }
+    d.setDate(d.getDate() - 1);
+  }
+  return streak;
+}
+
+function buildCalendarSectionHTML() {
+  const CAL_MONTHS = [];
+  for (let y = 2026; y <= 2027; y++) {
+    const sm = (y === 2026) ? 5 : 0;
+    for (let m = sm; m <= 11; m++) CAL_MONTHS.push({ year: y, month: m });
+  }
+
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const totalDone    = Object.values(calData).filter(e => e.status === 'done').length;
+  const streak       = calcStreak();
+  const totalLogged  = Object.values(calData).filter(e => e.status || e.notes).length;
+
+  const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const DAYS_ES   = ['L','M','X','J','V','S','D'];
+
+  const monthsHTML = CAL_MONTHS.map(({ year, month }) => {
+    const first  = new Date(year, month, 1);
+    const total  = new Date(year, month + 1, 0).getDate();
+    let   off    = first.getDay() - 1; if (off < 0) off = 6;
+
+    let dHTML = '';
+    for (let i = 0; i < off; i++) dHTML += '<div class="cal-day empty"></div>';
+    for (let d = 1; d <= total; d++) {
+      const date = new Date(year, month, d); date.setHours(0, 0, 0, 0);
+      const key  = formatDateKey(date);
+      const e    = calData[key] || {};
+      const isToday  = date.getTime() === today.getTime();
+      const isFuture = date.getTime() > today.getTime();
+      let cls = 'cal-day';
+      if (isToday) cls += ' today';
+      if      (e.status === 'done') cls += ' done';
+      else if (e.status === 'miss') cls += ' miss';
+      else if (e.notes)             cls += ' has-notes';
+      if (isFuture) cls += ' future';
+      const click = isFuture ? '' : `onclick="openCalDay('${key}')"`;
+      dHTML += `<div class="${cls}" ${click}>${d}</div>`;
+    }
+
+    return `<div class="cal-month-block">
+      <div class="cal-month-title">${MONTHS_ES[month]} ${year}</div>
+      <div class="cal-weekdays">${DAYS_ES.map(d => `<div class="cal-weekday-lbl">${d}</div>`).join('')}</div>
+      <div class="cal-grid">${dHTML}</div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div style="margin-top:40px;padding-top:32px;border-top:2px solid var(--border)">
+      <div style="margin-bottom:20px">
+        <h2 style="margin-bottom:6px">Calendario de Consistencia</h2>
+        <p>Registra tu progreso diario — junio 2026 → enero 2028. Los días en verde son días que has cumplido.</p>
+      </div>
+      <div class="cal-stats-bar">
+        <div class="cal-stat">
+          <div class="cal-stat-num">${totalDone}</div>
+          <div class="cal-stat-lbl">Días cumplidos</div>
+        </div>
+        <div class="cal-stat">
+          <div class="cal-stat-num" style="color:var(--acc-yellow)">${streak}</div>
+          <div class="cal-stat-lbl">Racha actual</div>
+        </div>
+        <div class="cal-stat">
+          <div class="cal-stat-num" style="color:var(--acc-blue)">${totalLogged}</div>
+          <div class="cal-stat-lbl">Días registrados</div>
+        </div>
+      </div>
+      <div class="cal-months-wrap">${monthsHTML}</div>
+    </div>`;
+}
+
+let _calKey = null;
+
+function openCalDay(key) {
+  _calKey = key;
+  const parts = key.split('-').map(Number);
+  const date = new Date(parts[0], parts[1] - 1, parts[2]);
+  const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const DAY_ES    = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const isToday = date.getTime() === today.getTime();
+  const sub = isToday ? '📅 Hoy' : (date < today ? '📋 Registro pasado' : '📌 Planificación');
+  const e   = calData[key] || {};
+  const doneCls = e.status === 'done' ? ' active' : '';
+  const missCls = e.status === 'miss' ? ' active' : '';
+
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="cal-modal-overlay" id="calOverlay" onclick="if(event.target===this)closeCalDay()">
+      <div class="cal-modal">
+        <div class="cal-modal-date">${DAY_ES[date.getDay()]}, ${parts[2]} de ${MONTHS_ES[parts[1]-1]} de ${parts[0]}</div>
+        <div class="cal-modal-sub">${sub}</div>
+        <textarea class="cal-modal-textarea" id="calTA"
+          placeholder="Escribe lo que has hecho hoy: páginas leídas, conceptos aprendidos, práctica con gráficos, tiempo dedicado...">${e.notes || ''}</textarea>
+        <div class="cal-modal-status-lbl">¿Cumpliste tus objetivos hoy?</div>
+        <div class="cal-modal-btns">
+          <button class="cal-btn-done${doneCls}" id="calBtnDone" onclick="toggleCalStatus('done')">✓ Cumplido</button>
+          <button class="cal-btn-miss${missCls}" id="calBtnMiss" onclick="toggleCalStatus('miss')">✗ No cumplí</button>
+        </div>
+        <div class="cal-modal-footer">
+          <button class="cal-btn-cancel" onclick="closeCalDay()">Cancelar</button>
+          <button class="cal-btn-save" onclick="saveCalDay()">Guardar →</button>
+        </div>
+      </div>
+    </div>`);
+}
+
+function toggleCalStatus(status) {
+  const dBtn = document.getElementById('calBtnDone');
+  const mBtn = document.getElementById('calBtnMiss');
+  if (!dBtn || !mBtn) return;
+  if (!calData[_calKey]) calData[_calKey] = {};
+  const cur = calData[_calKey].status;
+  if (cur === status) {
+    calData[_calKey].status = null;
+    dBtn.classList.remove('active');
+    mBtn.classList.remove('active');
+  } else {
+    calData[_calKey].status = status;
+    dBtn.classList.toggle('active', status === 'done');
+    mBtn.classList.toggle('active', status === 'miss');
+  }
+}
+
+function saveCalDay() {
+  if (!_calKey) return;
+  const ta = document.getElementById('calTA');
+  if (!calData[_calKey]) calData[_calKey] = {};
+  calData[_calKey].notes = ta ? ta.value.trim() : '';
+  if (!calData[_calKey].status && !calData[_calKey].notes) delete calData[_calKey];
+  syncSave('trading_calendar', calData);
+  closeCalDay();
+  renderProgressSection();
+}
+
+function closeCalDay() {
+  const overlay = document.getElementById('calOverlay');
+  if (overlay) overlay.remove();
+  _calKey = null;
+}
+
+// ─────────────────────────────────────────────────────────────
+// STEP TUTORIAL SYSTEM  (used by standalone tutorials + embedded)
+// ─────────────────────────────────────────────────────────────
+const TC = {
+  bullish: [
+    {open:1.0800,high:1.0838,low:1.0795,close:1.0832},{open:1.0832,high:1.0848,low:1.0825,close:1.0842},
+    {open:1.0842,high:1.0860,low:1.0835,close:1.0855},{open:1.0855,high:1.0862,low:1.0820,close:1.0825},
+    {open:1.0825,high:1.0843,low:1.0818,close:1.0838},{open:1.0838,high:1.0895,low:1.0832,close:1.0890},
+    {open:1.0890,high:1.0898,low:1.0858,close:1.0862},{open:1.0862,high:1.0870,low:1.0840,close:1.0845},
+    {open:1.0845,high:1.0865,low:1.0838,close:1.0860},{open:1.0860,high:1.0868,low:1.0842,close:1.0847},
+    {open:1.0847,high:1.0922,low:1.0842,close:1.0915},{open:1.0915,high:1.0924,low:1.0888,close:1.0895},
+    {open:1.0895,high:1.0902,low:1.0872,close:1.0878},{open:1.0878,high:1.0898,low:1.0874,close:1.0893},
+    {open:1.0893,high:1.0948,low:1.0888,close:1.0942},{open:1.0942,high:1.0950,low:1.0928,close:1.0932},
+    {open:1.0932,high:1.0952,low:1.0928,close:1.0948}
+  ],
+  bearish: [
+    {open:1.1000,high:1.1005,low:1.0958,close:1.0962},{open:1.0962,high:1.0966,low:1.0938,close:1.0942},
+    {open:1.0942,high:1.0975,low:1.0938,close:1.0970},{open:1.0970,high:1.0972,low:1.0940,close:1.0945},
+    {open:1.0945,high:1.0948,low:1.0900,close:1.0905},{open:1.0905,high:1.0942,low:1.0900,close:1.0938},
+    {open:1.0938,high:1.0940,low:1.0905,close:1.0910},{open:1.0910,high:1.0912,low:1.0875,close:1.0880},
+    {open:1.0880,high:1.0918,low:1.0878,close:1.0912},{open:1.0912,high:1.0915,low:1.0880,close:1.0885},
+    {open:1.0885,high:1.0888,low:1.0842,close:1.0848},{open:1.0848,high:1.0882,low:1.0845,close:1.0875},
+    {open:1.0875,high:1.0878,low:1.0845,close:1.0852},{open:1.0852,high:1.0855,low:1.0818,close:1.0822},
+    {open:1.0822,high:1.0856,low:1.0820,close:1.0848}
+  ],
+  eql: [
+    {open:1.0870,high:1.0895,low:1.0865,close:1.0888},{open:1.0888,high:1.0902,low:1.0880,close:1.0898},
+    {open:1.0898,high:1.0908,low:1.0862,close:1.0866},{open:1.0866,high:1.0888,low:1.0858,close:1.0882},
+    {open:1.0882,high:1.0905,low:1.0875,close:1.0900},{open:1.0900,high:1.0912,low:1.0868,close:1.0872},
+    {open:1.0872,high:1.0892,low:1.0862,close:1.0886},{open:1.0886,high:1.0900,low:1.0858,close:1.0862},
+    {open:1.0862,high:1.0880,low:1.0855,close:1.0874},{open:1.0874,high:1.0892,low:1.0865,close:1.0888},
+    {open:1.0888,high:1.0905,low:1.0855,close:1.0860},{open:1.0860,high:1.0878,low:1.0840,close:1.0838},
+    {open:1.0838,high:1.0858,low:1.0835,close:1.0853},{open:1.0853,high:1.0875,low:1.0855,close:1.0870},
+    {open:1.0870,high:1.0882,low:1.0858,close:1.0875},{open:1.0875,high:1.0892,low:1.0865,close:1.0888}
+  ],
+  demand: [
+    {open:1.0950,high:1.0958,low:1.0942,close:1.0953},{open:1.0953,high:1.0960,low:1.0945,close:1.0948},
+    {open:1.0948,high:1.0955,low:1.0940,close:1.0945},{open:1.0945,high:1.0952,low:1.0938,close:1.0942},
+    {open:1.0942,high:1.0948,low:1.0935,close:1.0938},{open:1.0938,high:1.0940,low:1.0828,close:1.0995},
+    {open:1.0995,high:1.1012,low:1.0988,close:1.1005},{open:1.1005,high:1.1020,low:1.0998,close:1.1015},
+    {open:1.1015,high:1.1025,low:1.1005,close:1.1008},{open:1.1008,high:1.1015,low:1.0992,close:1.0998},
+    {open:1.0998,high:1.1005,low:1.0985,close:1.0992},{open:1.0992,high:1.0998,low:1.0970,close:1.0975},
+    {open:1.0975,high:1.0980,low:1.0958,close:1.0962},{open:1.0962,high:1.0968,low:1.0945,close:1.0950},
+    {open:1.0950,high:1.0958,low:1.0930,close:1.0935},{open:1.0935,high:1.0940,low:1.0848,close:1.0980},
+    {open:1.0980,high:1.1002,low:1.0975,close:1.0998}
+  ],
+  setup: [
+    {open:1.0820,high:1.0855,low:1.0815,close:1.0848},{open:1.0848,high:1.0865,low:1.0838,close:1.0858},
+    {open:1.0858,high:1.0875,low:1.0830,close:1.0835},{open:1.0835,high:1.0852,low:1.0828,close:1.0845},
+    {open:1.0845,high:1.0900,low:1.0840,close:1.0895},{open:1.0895,high:1.0905,low:1.0862,close:1.0868},
+    {open:1.0868,high:1.0878,low:1.0845,close:1.0850},{open:1.0850,high:1.0870,low:1.0840,close:1.0862},
+    {open:1.0862,high:1.0942,low:1.0855,close:1.0935},{open:1.0935,high:1.0945,low:1.0900,close:1.0905},
+    {open:1.0905,high:1.0915,low:1.0875,close:1.0880},{open:1.0880,high:1.0892,low:1.0865,close:1.0870},
+    {open:1.0870,high:1.0882,low:1.0848,close:1.0852},{open:1.0852,high:1.0865,low:1.0832,close:1.0840},
+    {open:1.0840,high:1.0852,low:1.0820,close:1.0828},{open:1.0828,high:1.0840,low:1.0800,close:1.0830},
+    {open:1.0830,high:1.0870,low:1.0825,close:1.0862},{open:1.0862,high:1.0880,low:1.0855,close:1.0875},
+    {open:1.0875,high:1.0892,low:1.0868,close:1.0888}
+  ]
+};
+
+const STEP_DATA = {
+  direction: {
+    canvasId:'dir-canvas', prefixId:'dir',
+    steps:[
+      {n:8,title:'El grafico H4 — que estas viendo',
+       text:'Este es el <strong>EUR/USD en H4</strong>. Cada barra vertical es una VELA que representa <strong>4 horas de mercado real</strong>. Los numeros del lado = el precio del euro en dolares. Ahora mismo ves 8 velas, es decir 32 horas de historia del precio.',
+       cfg:{}},
+      {n:8,title:'El primer MAXIMO (High)',
+       text:'El precio subio hasta este punto mas alto. Ese punto se llama <strong>MAXIMO</strong> o en ingles: <em>High</em>. Es el nivel mas alto al que llego el precio en ese periodo. Lo marcamos como referencia.',
+       cfg:{pivots:[{index:5,type:'high',label:'MAXIMO',color:'#26a69a'}]}},
+      {n:12,title:'El precio bajo — pero paro mas arriba que antes',
+       text:'Despues del maximo el precio bajo. Pero <strong>no llego tan abajo como el comienzo</strong>. Eso es muy importante. Ese punto bajo es un <strong>MINIMO MAS ALTO (Higher Low = HL)</strong>. El mercado mostro fuerza al no bajar tanto.',
+       cfg:{pivots:[{index:5,type:'high',label:'HH',color:'#26a69a'},{index:9,type:'low',label:'HL',color:'#60a5fa'}]}},
+      {n:15,title:'Nuevo MAXIMO — mas alto que el anterior (HH)',
+       text:'El precio subio de nuevo y llego <strong>MAS ALTO que la primera vez</strong>. Eso es un <em>Higher High (HH)</em> = Maximo MAS ALTO. Ya tenemos HH + HL. El patron esta claro: el mercado quiere subir.',
+       cfg:{pivots:[{index:5,type:'high',label:'HH',color:'#26a69a'},{index:9,type:'low',label:'HL',color:'#60a5fa'},{index:14,type:'high',label:'HH',color:'#26a69a'}]}},
+      {n:17,title:'El patron HH+HL confirma mercado ALCISTA',
+       text:'<strong>HH + HL repetidos = mercado ALCISTA</strong>. Cada subida llega mas alto, cada bajada para mas arriba. En este mercado <strong>SOLO BUSCAS COMPRAR (LONG)</strong>. Ir en contra es luchar contra la corriente.',
+       cfg:{pivots:[{index:5,type:'high',label:'HH',color:'#26a69a'},{index:9,type:'low',label:'HL',color:'#60a5fa'},{index:14,type:'high',label:'HH',color:'#26a69a'}],textBadges:[{text:'SESGO: ALCISTA — SOLO LONG',color:'#26a69a',bg:'rgba(0,0,0,0.92)',xp:0.72,yp:0.1,size:12}]},
+       hint:'<strong>Regla de oro:</strong> Si H4 alcista, no busques SHORT aunque el precio baje. Espera siempre la compra.'},
+      {n:15,candles:'bearish',title:'El mercado BAJISTA: LH + LL',
+       text:'El bajista es lo contrario: <em>LH</em> (Lower High) = maximos MAS BAJOS. <em>LL</em> (Lower Low) = minimos MAS BAJOS. Tendencia hacia abajo. En este mercado <strong>SOLO BUSCAS VENDER (SHORT)</strong>.',
+       cfg:{pivots:[{index:4,type:'low',label:'LL',color:'#ef5350'},{index:5,type:'high',label:'LH',color:'#fbbf24'},{index:7,type:'low',label:'LL',color:'#ef5350'},{index:8,type:'high',label:'LH',color:'#fbbf24'},{index:10,type:'low',label:'LL',color:'#ef5350'}],textBadges:[{text:'SESGO: BAJISTA — SOLO SHORT',color:'#ef5350',bg:'rgba(0,0,0,0.92)',xp:0.72,yp:0.88,size:12}]},
+       hint:'<strong>Resumen:</strong> HH+HL = alcista, busca LONG. LH+LL = bajista, busca SHORT. Sin patron claro = no operes.'}
+    ]
+  },
+  liquidity:{
+    canvasId:'liq-canvas',prefixId:'liq',
+    steps:[
+      {n:7,title:'El mercado en equilibrio — hay stops en todos lados',
+       text:'El precio lleva tiempo moviendose aqui. Hay miles de traders con posiciones abiertas. Cada uno tiene un <strong>Stop Loss (SL)</strong> — el precio al que su operacion se cierra si va mal. Esos SL son ordenes de compra/venta <strong>esperando activarse en niveles concretos</strong>.',
+       cfg:{}},
+      {n:11,title:'El precio toca el mismo nivel DOS veces',
+       text:'El precio bajo hasta este nivel, reboto, y luego <strong>volvio al mismo nivel</strong>. Los traders que compraron aqui pusieron sus Stop Losses <strong>justo por debajo</strong>. Ahora hay una gran concentracion de stops en ese nivel concreto.',
+       cfg:{liquidityLines:[{price:1.0858,label:'Stops acumulados aqui'}]}},
+      {n:11,title:'EQUAL LOWS (EQL) — el iman de stops',
+       text:'Dos o mas minimos en el mismo precio = <strong>Equal Lows (EQL)</strong>. Es como si el grafico pintara un letrero de "stops acumulados aqui". Los institucionales saben esto. <strong>Ese nivel se convierte en un iman para el precio</strong>.',
+       cfg:{liquidityLines:[{price:1.0858,label:'EQL — Equal Lows'}],pivots:[{index:2,type:'low',label:'1er LOW',color:'#fbbf24'},{index:7,type:'low',label:'2do LOW (igual)',color:'#fbbf24'}]}},
+      {n:13,title:'El SWEEP — el precio va a buscar los stops',
+       text:'Mira esta vela: tiene una <strong>sombra (wick) muy larga hacia abajo</strong>. El precio perforo los Equal Lows activando todos los stops. Los institucionales empujaron el precio hacia abajo <strong>a proposito</strong> para conseguir esas ordenes de venta como su contrapartida de compra.',
+       cfg:{liquidityLines:[{price:1.0858,label:'EQL barrido'}],sweepIndex:11}},
+      {n:16,title:'La REVERSION — el sweep es la senal',
+       text:'La vela del sweep <strong>cerro POR ENCIMA de la linea</strong>. Los stops se activaron, los institucionales compraron esas ventas a precio bajo, y ahora el precio sube con fuerza. <strong>Este es exactamente el patron que buscas</strong>: sweep + reversion.',
+       cfg:{liquidityLines:[{price:1.0858,label:'EQL barrido y revertido'}],sweepIndex:11},
+       hint:'<strong>Clave:</strong> El sweep es valido solo si la vela CIERRA al otro lado del nivel. Si cierra por debajo — es ruptura, no sweep.'}
+    ]
+  },
+  zones:{
+    canvasId:'zon-canvas',prefixId:'zon',
+    steps:[
+      {n:5,title:'El mercado tranquilo',
+       text:'El precio se mueve lentamente con velas pequenas. No parece pasar nada especial. <strong>Pero algo importante esta a punto de ocurrir</strong>. Los institucionales estan acumulando en silencio.',
+       cfg:{}},
+      {n:7,title:'EL IMPULSO — alguien compro una cantidad enorme',
+       text:'Mira esta vela gigante! El precio salto en muy poco tiempo. <strong>Esto no es un trader normal</strong> — es dinero institucional (banco, hedge fund). Compraron una cantidad masiva en ese momento. El mercado lo refleja con una vela enorme.',
+       cfg:{textBadges:[{text:'IMPULSO INSTITUCIONAL',color:'#fbbf24',bg:'rgba(0,0,0,0.92)',xp:0.65,yp:0.15,size:11}]}},
+      {n:7,title:'La ZONA DE DEMANDA — donde dejaron sus ordenes',
+       text:'El area justo <strong>antes del impulso</strong> es la Zona de Demanda. Ahi pusieron sus ordenes de compra. No ejecutaron todo de una vez — dejaron ordenes pendientes. <strong>Si el precio vuelve, volverian a comprar</strong>.',
+       cfg:{demandZones:[{top:1.0942,bottom:1.0928}],textBadges:[{text:'ZONA DE DEMANDA (origen del impulso)',color:'#26a69a',bg:'rgba(0,0,0,0.92)',xp:0.6,yp:0.82,size:11}]}},
+      {n:15,title:'El precio REGRESA — primera visita',
+       text:'El precio subio, luego bajo de nuevo hacia la zona. <strong>Primera visita</strong>. Las ordenes institucionales no se han consumido todavia. La zona esta <strong>fresca</strong>. Alta probabilidad de rebote.',
+       cfg:{demandZones:[{top:1.0942,bottom:1.0928}],textBadges:[{text:'1a VISITA — zona fresca',color:'#26a69a',bg:'rgba(0,0,0,0.92)',xp:0.65,yp:0.82,size:11}]}},
+      {n:17,title:'El REBOTE — los institucionales compraron de nuevo',
+       text:'El precio entro en la zona y reboto con fuerza. Los institucionales defendieron su zona. <strong>AHI entras tu</strong> — al mismo tiempo que los mas grandes del mercado, en la misma direccion que ellos.',
+       cfg:{demandZones:[{top:1.0942,bottom:1.0928}],textBadges:[{text:'REBOTE INSTITUCIONAL — ENTRADA',color:'#26a69a',bg:'rgba(0,0,0,0.92)',xp:0.65,yp:0.2,size:11}]},
+       hint:'<strong>Zona fresca</strong> = 0-1 visitas, alta probabilidad. <strong>Zona gastada</strong> = 3+ visitas, no operes.'}
+    ]
+  },
+  setup:{
+    canvasId:'set-canvas',prefixId:'set',
+    steps:[
+      {n:8,title:'Un grafico H4 cualquiera',
+       text:'Abres TradingView y ves esto. Un monton de velas. La mayoria de traders no sabe que hacer. <strong>Vamos a leerlo juntos, capa por capa</strong>, aplicando los 3 pilares de tu estrategia.',
+       cfg:{}},
+      {n:12,title:'CAPA 1: Confirma la DIRECCION',
+       text:'Primer filtro: <strong>el H4 hace HH y HL?</strong> Si. Maximos y minimos crecientes. Mercado <strong>ALCISTA</strong>. Sesgo del dia: LONG. Solo buscas compras. Primer elemento confirmado. ✓',
+       cfg:{pivots:[{index:5,type:'high',label:'HH',color:'#26a69a'},{index:8,type:'low',label:'HL',color:'#60a5fa'}],textBadges:[{text:'SESGO: ALCISTA ✓',color:'#26a69a',bg:'rgba(0,0,0,0.92)',xp:0.75,yp:0.1,size:12}]}},
+      {n:16,title:'CAPA 2: Identifica la LIQUIDEZ',
+       text:'Segundo filtro: <strong>hay minimos iguales (Equal Lows)?</strong> Aqui veo dos minimos al mismo nivel. Stops acumulados debajo. El precio puede ir a buscarlos. Liquidez identificada. ✓',
+       cfg:{pivots:[{index:5,type:'high',label:'HH',color:'#26a69a'},{index:8,type:'low',label:'HL',color:'#60a5fa'}],liquidityLines:[{price:1.0820,label:'EQL — Stops aqui'}],textBadges:[{text:'SESGO: ALCISTA ✓',color:'#26a69a',bg:'rgba(0,0,0,0.92)',xp:0.75,yp:0.1,size:12}]}},
+      {n:17,title:'El precio baja hacia los EQL',
+       text:'El precio baja hacia los Equal Lows. <strong>Esto es lo que esperabamos</strong>. Los institucionales van a buscar esa liquidez. No entres todavia. <strong>Espera la confirmacion del sweep</strong>.',
+       cfg:{liquidityLines:[{price:1.0820,label:'EQL'}],textBadges:[{text:'ESPERANDO SWEEP...',color:'#fbbf24',bg:'rgba(0,0,0,0.92)',xp:0.75,yp:0.88,size:12}]}},
+      {n:19,title:'SWEEP confirmado',
+       text:'El precio perforo los Equal Lows con wick largo pero <strong>cerro por encima</strong>. Sweep confirmado. Los stops fueron activados. Ahora busca: <strong>hay zona de demanda en ese area?</strong>',
+       cfg:{liquidityLines:[{price:1.0820,label:'EQL barrido'}],sweepIndex:15,textBadges:[{text:'SWEEP CONFIRMADO ✓',color:'#fbbf24',bg:'rgba(0,0,0,0.92)',xp:0.75,yp:0.88,size:12}]}},
+      {n:19,title:'CAPA 3: ZONA DE DEMANDA en el area del sweep',
+       text:'Perfecto. Justo donde ocurrio el sweep hay una <strong>zona de demanda fresca</strong>. Los 3 elementos coinciden: direccion alcista + EQL barrido + zona fresca. Esto es <strong>CONFLUENCIA TRIPLE</strong>.',
+       cfg:{liquidityLines:[{price:1.0820,label:'EQL barrido'}],demandZones:[{top:1.0835,bottom:1.0818}],sweepIndex:15,textBadges:[{text:'CONFLUENCIA TRIPLE ✓✓✓',color:'#26a69a',bg:'rgba(0,0,0,0.92)',xp:0.75,yp:0.1,size:12}]}},
+      {n:19,title:'CAPA 4: Senal en M15',
+       text:'Bajas al <strong>M15</strong> y buscas la senal. Aparece una <strong>vela engulfing alcista</strong> — vela verde que engloba la roja anterior, cerrando mas arriba. Eso es la confirmacion de que los compradores tomaron el control. Los 4 elementos estan.',
+       cfg:{liquidityLines:[{price:1.0820,label:'EQL'}],demandZones:[{top:1.0835,bottom:1.0818}],sweepIndex:15,signalIndex:17}},
+      {n:19,title:'EL TRADE COMPLETO — SL y TP definidos',
+       text:'<strong>Setup completo.</strong> Linea azul = entrada. Linea roja = SL (por debajo del sweep). Lineas verdes = TP1 y TP2 (objetivos). Riesgo: 1% del capital. Pones las ordenes y <strong>cierras el ordenador</strong>. El trade se gestiona solo.',
+       cfg:{liquidityLines:[{price:1.0820,label:'EQL'}],demandZones:[{top:1.0835,bottom:1.0818}],sweepIndex:15,signalIndex:17,showSetupArrow:'long',entryLine:1.0840,slLine:1.0804,tp1Line:1.0895,tp2Line:1.0950},
+       hint:'<strong>Los 4 elementos:</strong> 1) Direccion H4 alcista. 2) EQL barrido. 3) Zona demanda fresca. 4) Senal M15 engulfing. Si falta 1 — no entras.'}
+    ]
+  }
+};
+
+const stepState = { direction:0, liquidity:0, zones:0, setup:0 };
+const stepInited = {};
+
+function initStepTab(name) {
+  if (!STEP_DATA[name]) return;
+  if (stepInited[name]) { renderStep(name, stepState[name]); return; }
+  stepInited[name] = true;
+  const td = STEP_DATA[name];
+  const p  = td.prefixId;
+  const totalEl = document.getElementById(p + '-total');
+  if (totalEl) totalEl.textContent = td.steps.length;
+  renderStep(name, 0);
+}
+
+function renderStep(name, idx) {
+  stepState[name] = idx;
+  const td = STEP_DATA[name];
+  if (!td) return;
+  const s = td.steps[idx];
+  const p = td.prefixId;
+  if (!s) return;
+
+  const numEl   = document.getElementById(p + '-num');
+  const dotsEl  = document.getElementById(p + '-dots');
+  const prevBtn = document.getElementById(p + '-prev');
+  const nextBtn = document.getElementById(p + '-next');
+  const titleEl = document.getElementById(p + '-title');
+  const textEl  = document.getElementById(p + '-text');
+  const hintEl  = document.getElementById(p + '-hint');
+
+  if (numEl)  numEl.textContent  = idx + 1;
+  if (dotsEl) dotsEl.innerHTML   = td.steps.map((_,i) =>
+    `<span class="step-dot ${i===idx?'active':i<idx?'done':''}"></span>`).join('');
+  if (prevBtn) prevBtn.disabled  = idx === 0;
+  if (nextBtn) nextBtn.textContent = idx === td.steps.length - 1 ? 'Completado ✓' : 'Siguiente →';
+  if (titleEl) titleEl.innerHTML = s.title;
+  if (textEl)  textEl.innerHTML  = s.text;
+  if (hintEl) { if (s.hint){ hintEl.innerHTML = s.hint; hintEl.style.display = 'block'; } else { hintEl.style.display = 'none'; } }
+
+  const canvas = document.getElementById(td.canvasId);
+  if (!canvas || !window.ChartEngine) return;
+  const cKey = s.candles || name;
+  const allC = TC[cKey==='direction'?'bullish':cKey==='liquidity'?'eql':cKey==='zones'?'demand':'setup'];
+  const candles = (allC || TC.bullish).slice(0, Math.min(s.n, (allC || TC.bullish).length));
+  window.ChartEngine.drawChart(canvas, candles, s.cfg || {});
+}
+
+function nextStep(name) {
+  const td = STEP_DATA[name];
+  if (td && stepState[name] < td.steps.length - 1) renderStep(name, stepState[name] + 1);
+}
+function prevStep(name) {
+  if (stepState[name] > 0) renderStep(name, stepState[name] - 1);
+}
+
+function showTutorialTab(name) {
+  state.activeTutorialTab = name;
+  setTimeout(() => initStepTab(name), 50);
+}
+
+// ─────────────────────────────────────────────────────────────
+// SIMULATOR
+// ─────────────────────────────────────────────────────────────
+function buildH4Config(c) {
+  return {
+    demandZones:    (c.demandZoneTop && c.demandZoneBottom)  ? [{ top: c.demandZoneTop, bottom: c.demandZoneBottom }] : [],
+    supplyZones:    (c.supplyZoneTop && c.supplyZoneBottom)  ? [{ top: c.supplyZoneTop, bottom: c.supplyZoneBottom }] : [],
+    liquidityLines: (c.liquidityLevel)                       ? [{ price: c.liquidityLevel, label: c.liquidityType || 'LIQ' }] : [],
+    sweepIndex:     c.sweepCandleIndex != null ? c.sweepCandleIndex : null,
+    signalIndex:    null
+  };
+}
+
+function buildEntryConfig(c, withSetup) {
+  const cfg = {
+    demandZones:    (c.demandZoneTop && c.demandZoneBottom)  ? [{ top: c.demandZoneTop, bottom: c.demandZoneBottom }] : [],
+    supplyZones:    (c.supplyZoneTop && c.supplyZoneBottom)  ? [{ top: c.supplyZoneTop, bottom: c.supplyZoneBottom }] : [],
+    liquidityLines: (c.liquidityLevel)                       ? [{ price: c.liquidityLevel, label: c.liquidityType || 'LIQ' }] : [],
+    sweepIndex:     c.sweepCandleIndex != null ? c.sweepCandleIndex : null,
+    signalIndex:    c.signalCandleIndex != null ? c.signalCandleIndex : null,
+    showSetupArrow: withSetup && c.isValid ? (c.direction === 'bullish' ? 'long' : 'short') : false
+  };
+  if (withSetup && c.isValid) {
+    cfg.entryLine = c.entryPrice;
+    cfg.slLine    = c.slPrice;
+    cfg.tp1Line   = c.tp1Price;
+    cfg.tp2Line   = c.tp2Price;
+  }
+  return cfg;
+}
+
+function loadCase(index) {
+  const cases = window.CASES;
+  if (!cases || index < 0 || index >= cases.length) return;
+  state.currentCase = index;
+  const c = cases[index];
+
+  document.getElementById('btnPrev').disabled = index === 0;
+  document.getElementById('btnNext').disabled = index === cases.length - 1;
+  document.getElementById('caseNum').textContent = index + 1;
+  document.getElementById('caseTitle').textContent = c.title;
+
+  const dirLabel  = c.direction === 'bullish'
+    ? '<span class="label-pill pill-green">LONG Setup</span>'
+    : '<span class="label-pill pill-red">SHORT Setup</span>';
+  const validLabel = c.isValid
+    ? '<span class="label-pill pill-green">Valido</span>'
+    : '<span class="label-pill pill-red">Invalido</span>';
+  const diffMap = { demand_bounce:'Basico', supply_reject:'Basico', liquidity_sweep_low:'Intermedio', liquidity_sweep_high:'Intermedio', bullish_trend:'Avanzado', bearish_trend:'Avanzado', range_market:'Trampa', false_break_no_reverse:'Trampa', choppy_market:'Trampa' };
+  const diff = diffMap[c.scenario] || 'Basico';
+  document.getElementById('caseMeta').innerHTML = dirLabel + ' ' + validLabel + ` <span class="label-pill pill-gray">${diff}</span>`;
+
+  const h4El = document.getElementById('h4Chart');
+  const h4Candles = ChartEngine.generateCandles({ basePrice: c.basePrice, numCandles: 25, scenario: c.scenario, seed: c.seed });
+  ChartEngine.drawChart(h4El, h4Candles, buildH4Config(c));
+
+  const entryEl  = document.getElementById('entryChart');
+  const answered = state.quizAnswers[c.id] !== undefined;
+  const h1Candles = ChartEngine.generateCandles({ basePrice: c.basePrice, numCandles: 30, scenario: c.scenario, seed: c.seed + 100 });
+  ChartEngine.drawChart(entryEl, h1Candles, buildEntryConfig(c, answered));
+
+  renderAnalysisPanels(c);
+
+  if (answered) { showQuizResult(c, state.quizAnswers[c.id]); }
+  else          { showQuizInput(); }
+
+  updateProgressStats();
+}
+
+function renderAnalysisPanels(c) {
+  const panels = [
+    { num:'1', title:'Direccion H4', present: c.hasDirection, text: c.directionAnalysis },
+    { num:'2', title:'Liquidez',     present: c.hasLiquidity, text: c.liquidityAnalysis },
+    { num:'3', title:'Zona O/D',     present: c.hasZone,      text: c.zoneAnalysis }
+  ];
+  document.getElementById('analysisPanels').innerHTML = panels.map(p => {
+    const cls   = p.present ? 'present' : 'absent';
+    const icon  = p.present ? '<span class="text-green">✓</span>' : '<span class="text-red">✗</span>';
+    const tCol  = p.present ? 'text-green' : 'text-red';
+    return `<div class="analysis-panel ${cls}">
+      <div class="analysis-panel-title ${tCol}"><span class="analysis-icon">${icon}</span>${p.num}. ${p.title}</div>
+      <p>${p.text}</p>
+    </div>`;
+  }).join('');
+}
+
+function showQuizInput() {
+  document.getElementById('quizInput').style.display  = 'block';
+  document.getElementById('quizResult').style.display = 'none';
+  document.getElementById('quizResult').innerHTML = '';
+}
+
+function answerQuiz(userAnswer) {
+  const c = window.CASES[state.currentCase];
+  state.quizAnswers[c.id] = userAnswer;
+  saveProgress();
+  showQuizResult(c, userAnswer);
+  if (c.isValid) {
+    const entryEl   = document.getElementById('entryChart');
+    const h1Candles = ChartEngine.generateCandles({ basePrice: c.basePrice, numCandles: 30, scenario: c.scenario, seed: c.seed + 100 });
+    ChartEngine.drawChart(entryEl, h1Candles, buildEntryConfig(c, true));
+  }
+  updateProgressStats();
+}
+
+function showQuizResult(c, userAnswer) {
+  document.getElementById('quizInput').style.display = 'none';
+  const isCorrect   = userAnswer === c.isValid;
+  const resultEl    = document.getElementById('quizResult');
+  resultEl.style.display = 'block';
+
+  const badgeCls   = isCorrect ? 'correct' : 'incorrect';
+  const badgeText  = isCorrect ? '✓ CORRECTO' : '✗ INCORRECTO';
+  const userText   = userAnswer ? 'Entrarías (SI)' : 'No entrarías (NO)';
+  const correctText = c.isValid
+    ? 'La respuesta correcta era: SI — es un setup valido.'
+    : 'La respuesta correcta era: NO — este setup es invalido.';
+
+  let invalidBadge = '';
+  if (!c.isValid && c.invalidReason) {
+    const reasonLabels = { no_direction:'Sin direccion H4', no_liquidity:'Sin liquidez barrida', stale_zone:'Zona gastada', no_signal:'Sin senal M15', wrong_direction:'Direccion incorrecta', zone_too_far:'Precio lejos de zona' };
+    const label = reasonLabels[c.invalidReason] || c.invalidReason;
+    invalidBadge = `<span class="invalid-reason-badge" style="background:rgba(239,83,80,0.15);color:var(--acc-red);border:1px solid rgba(239,83,80,0.3);">Razon: ${label}</span>`;
+  }
+
+  resultEl.innerHTML = `
+    <div style="margin-bottom:12px;font-size:0.83rem;color:var(--text-sec);">Tu respuesta: <strong style="color:var(--text-pri);">${userText}</strong></div>
+    <div class="verdict-box ${badgeCls} fade-in">
+      <div class="verdict-badge ${badgeCls}">${badgeText}</div>
+      ${!isCorrect ? `<div class="verdict-text" style="color:var(--text-sec);font-size:0.84rem;">${correctText}</div>` : ''}
+      <div class="verdict-text">${c.verdict}</div>
+      <div class="verdict-explanation">${c.quizExplanation}</div>
+      ${invalidBadge}
+    </div>`;
+}
+
+function updateProgressStats() {
+  const cases = window.CASES;
+  if (!cases) return;
+  const answers  = state.quizAnswers;
+  const answered = Object.keys(answers).length;
+  const correct  = Object.entries(answers).filter(([id, ans]) => {
+    const c = cases.find(x => x.id === parseInt(id));
+    return c && ans === c.isValid;
+  }).length;
+  const validAns   = Object.entries(answers).filter(([, ans]) => ans === true).length;
+  const invalidAns = Object.entries(answers).filter(([, ans]) => ans === false).length;
+  const wr = answered > 0 ? Math.round((correct / answered) * 100) : null;
+
+  document.getElementById('stat-answered').textContent = answered;
+  document.getElementById('stat-correct').textContent  = correct;
+  document.getElementById('stat-wr').textContent       = wr !== null ? wr + '%' : '—';
+  document.getElementById('stat-valid').textContent    = validAns;
+  document.getElementById('stat-invalid').textContent  = invalidAns;
+  document.getElementById('progressBar').style.width   = Math.round((answered / 100) * 100) + '%';
+}
+
+function resetProgress() {
+  if (!confirm('Reiniciar todo el progreso del quiz? No se puede deshacer.')) return;
+  state.quizAnswers = {};
+  saveProgress();
+  loadCase(state.currentCase);
+  updateProgressStats();
+}
+
+function nextCase() { if (state.currentCase < window.CASES.length - 1) loadCase(state.currentCase + 1); }
+function prevCase() { if (state.currentCase > 0) loadCase(state.currentCase - 1); }
+
+function gotoCase() {
+  const val = parseInt(document.getElementById('gotoInput').value);
+  if (!isNaN(val) && val >= 1 && val <= 100) {
+    loadCase(val - 1);
+    document.getElementById('gotoInput').value = '';
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// OBJETIVOS — STATE & DATA
+// ─────────────────────────────────────────────────────────────
+
+const OBJ_SHORT_DEFAULTS = [
+  'Buscar un trabajo de verano',
+  'Ser disciplinado durante todo el verano — mientras otros van de fiesta, nosotros construimos nuestro camino',
+  'Construir una buena estructura mental: asumir el riesgo del trading, ser responsable de mis acciones, mentalidad ganadora, no tradear por venganza',
+  'Pulir mi estrategia tradeando con cuenta demo',
+  'Pagar mi primer examen para fondearme',
+  'Superar mi primera cuenta fondeada sin perderla por incumplir mis normas',
+  'No fallar en mi setup — seguir mi estrategia y normas sin excepción ni un solo día, ni en demo. El trader exitoso se construye desde el momento cero',
+  'Pagar más exámenes para fondearme',
+  'Ir al gimnasio',
+  'Seguir mis normas cada día',
+  'Aprender más cada día'
+];
+
+const OBJ_LONG_DEFAULTS = [
+  { id: 1, icon: '💰', title: 'Ganar más de 10.000€/mes limpios', phrase: 'Libertad financiera real. Sin jefe, sin techo, sin límites. Cada pip cuenta.' },
+  { id: 2, icon: '🌍', title: 'Trabajar desde donde quiera',      phrase: 'El portátil es tu oficina. La conexión a internet, tu único requisito. El mundo, tu destino.' },
+  { id: 3, icon: '🏎️', title: 'BMW M3 CS',                        phrase: 'No es un coche. Es el símbolo de lo que construyes cada día que no te rindes.' }
+];
+
+const OBJ_DEFAULT_AFFIRMATIONS = [
+  'Gano más de 10.000€ al mes limpios',
+  'Trabajo desde donde quiero, cuando quiero',
+  'Conduzco mi BMW M3 CS',
+  'Soy un trader consistente y disciplinado',
+  'Soy responsable de mis acciones y mis resultados',
+  'Mi mentalidad es la de un ganador'
+];
+
+let objShortItems   = JSON.parse(localStorage.getItem('obj_short_items') || 'null');
+if (!objShortItems) objShortItems = OBJ_SHORT_DEFAULTS.map((text, i) => ({ id: i + 1, text, done: false }));
+
+let objLongItems    = JSON.parse(localStorage.getItem('obj_long_items') || 'null');
+if (!objLongItems)  objLongItems  = OBJ_LONG_DEFAULTS.map(d => Object.assign({}, d));
+
+let objDiary        = JSON.parse(localStorage.getItem('obj_diary') || '[]');
+let objAffirmations = JSON.parse(localStorage.getItem('obj_affirmations') || 'null');
+if (!objAffirmations) objAffirmations = OBJ_DEFAULT_AFFIRMATIONS.slice();
+
+let objDiaryStatus = null;
+
+function saveObjShortItems()   { syncSave('obj_short_items',  objShortItems); }
+function saveObjLongItems()    { syncSave('obj_long_items',   objLongItems); }
+function saveObjDiary()        { syncSave('obj_diary',        objDiary); }
+function saveObjAffirmations() { syncSave('obj_affirmations', objAffirmations); }
+
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function formatDateDisplay(isoStr) {
+  const [y, m, day] = isoStr.split('-');
+  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// OBJETIVOS — RENDER
+// ─────────────────────────────────────────────────────────────
+
+function renderObjetivosSection() {
+  const el = document.getElementById('objetivosContent');
+  if (!el) return;
+  el.innerHTML = `
+    ${renderObjLongTerm()}
+    ${renderObjShortTerm()}
+    ${renderObjDiary()}
+    ${renderObjAffirmations()}
+  `;
+  attachObjEvents();
+}
+
+function renderObjLongTerm() {
+  const COLORS = ['money','world','car','green','orange','pink'];
+  const cards = objLongItems.map((item, i) => {
+    const cc = COLORS[i] || COLORS[i % COLORS.length];
+    return `
+      <div class="obj-goal-card ${cc}">
+        <div class="obj-goal-card-glow"></div>
+        <button class="obj-lp-del" onclick="deleteLongObj(${item.id})" title="Eliminar">×</button>
+        <span class="obj-goal-icon">${item.icon || '🎯'}</span>
+        <div class="obj-goal-title">${escapeHtml(item.title)}</div>
+        ${item.phrase ? `<div class="obj-goal-phrase">${escapeHtml(item.phrase)}</div>` : ''}
+      </div>`;
+  }).join('');
+
+  return `
+  <div class="obj-subsection fade-in">
+    <div class="obj-subsection-title">01 — Long term</div>
+    <div class="obj-subsection-heading">Objetivos a Largo Plazo</div>
+    <p class="obj-subsection-desc">Tu por qué. La razón por la que madrugas, estudias y sacrificas.</p>
+    <div class="obj-goals-grid">${cards}</div>
+    <div id="objLongAddForm" style="display:none" class="obj-add-form">
+      <input id="objLongIcon"  class="obj-add-input" style="width:70px"  placeholder="🎯" maxlength="4">
+      <input id="objLongTitle" class="obj-add-input" style="flex:1;min-width:160px" placeholder="Título del objetivo...">
+      <input id="objLongPhrase" class="obj-add-input" style="flex:2;min-width:160px" placeholder="Frase motivacional (opcional)...">
+      <button class="obj-add-save-btn" onclick="saveLongObj()">Añadir</button>
+      <button class="obj-add-cancel-btn" onclick="document.getElementById('objLongAddForm').style.display='none'">×</button>
+    </div>
+    <button class="obj-add-item-btn" onclick="document.getElementById('objLongAddForm').style.display='flex';document.getElementById('objLongTitle').focus()">+ Añadir objetivo a largo plazo</button>
+  </div>`;
+}
+
+function renderObjShortTerm() {
+  const total = objShortItems.length;
+  const done  = objShortItems.filter(it => it.done).length;
+  const pct   = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  const items = objShortItems.map((item, i) => `
+    <div class="obj-short-item${item.done ? ' checked' : ''}" id="obj-si-${item.id}">
+      <span class="obj-short-num" onclick="toggleShortObj(${item.id})">${i + 1}</span>
+      <div class="obj-custom-cb" onclick="toggleShortObj(${item.id})"><span class="obj-custom-cb-check">✓</span></div>
+      <div class="obj-short-text" onclick="toggleShortObj(${item.id})">${escapeHtml(item.text)}</div>
+      <button class="obj-short-del" onclick="deleteShortObj(${item.id})" title="Eliminar">×</button>
+    </div>`).join('');
+
+  return `
+  <div class="obj-subsection fade-in">
+    <div class="obj-subsection-title">02 — Short term</div>
+    <div class="obj-subsection-heading">Objetivos a Corto Plazo</div>
+    <p class="obj-subsection-desc">Los pasos concretos que te llevan al objetivo grande.</p>
+    <div class="obj-progress-bar-wrap">
+      <div class="obj-progress-label">
+        <span>Progreso</span>
+        <span class="obj-progress-count">${done} / ${total} completados</span>
+      </div>
+      <div class="obj-progress-bar">
+        <div class="obj-progress-fill" style="width:${pct}%"></div>
+      </div>
+    </div>
+    <div class="obj-short-list">${items}</div>
+    <div id="objShortAddForm" style="display:none" class="obj-add-form">
+      <input id="objShortInput" class="obj-add-input" style="flex:1;min-width:200px" placeholder="Nuevo objetivo a corto plazo...">
+      <button class="obj-add-save-btn" onclick="saveShortObj()">Añadir</button>
+      <button class="obj-add-cancel-btn" onclick="document.getElementById('objShortAddForm').style.display='none'">×</button>
+    </div>
+    <button class="obj-add-item-btn" onclick="document.getElementById('objShortAddForm').style.display='flex';document.getElementById('objShortInput').focus()">+ Añadir objetivo a corto plazo</button>
+  </div>`;
+}
+
+function renderObjDiary() {
+  const today = todayStr();
+  const existing = objDiary.find(e => e.date === today);
+  const preloadText   = existing ? existing.text   : '';
+  const preloadStatus = existing ? existing.status : null;
+
+  const statusBtns = [
+    { id: 'good', label: '✅ Sí, he actuado'    },
+    { id: 'meh',  label: '⚡ Algo he hecho'     },
+    { id: 'bad',  label: '❌ No he hecho nada'  }
+  ].map(s => {
+    const isActive = (objDiaryStatus === s.id) || (!objDiaryStatus && preloadStatus === s.id);
+    return `<button class="obj-diary-status-btn${isActive ? ' active-'+s.id : ''}" onclick="selectDiaryStatus('${s.id}')">${s.label}</button>`;
+  }).join('');
+
+  const recent = objDiary.slice().sort((a,b) => b.date.localeCompare(a.date)).slice(0, 7);
+  const historyHTML = recent.length === 0
+    ? `<p style="color:var(--text-mut);font-size:0.84rem;text-align:center;padding:20px 0;">Aún no hay entradas. Empieza hoy.</p>`
+    : recent.map(entry => {
+        const preview = entry.text.length > 120 ? entry.text.slice(0, 120) + '…' : entry.text;
+        const badgeMap = { good: '✅ Actuó', meh: '⚡ Algo', bad: '❌ Nada' };
+        const badgeLabel = badgeMap[entry.status] || '';
+        const isToday = entry.date === today;
+        return `
+        <div class="obj-diary-entry-card">
+          <div class="obj-diary-entry-header">
+            <span class="obj-diary-entry-date">${formatDateDisplay(entry.date)}${isToday ? ' — hoy' : ''}</span>
+            ${entry.status ? `<span class="obj-diary-entry-badge ${entry.status}">${badgeLabel}</span>` : ''}
+          </div>
+          <div class="obj-diary-entry-preview">${preview || '<em style="color:var(--text-mut)">Sin texto</em>'}</div>
+        </div>`;
+      }).join('');
+
+  return `
+  <div class="obj-subsection fade-in">
+    <div class="obj-subsection-title">03 — Daily check-in</div>
+    <div class="obj-subsection-heading">Diario de Acción</div>
+    <p class="obj-subsection-desc">No es lo que <em style="color:var(--text-pri)">quieres</em> conseguir — es lo que <strong style="color:var(--text-pri)">haces</strong> cada día para conseguirlo. ¿Hoy has actuado, o solo has deseado?</p>
+    <div class="obj-diary-input-area">
+      <div class="obj-diary-question">¿Has actuado hoy en dirección a tus objetivos?</div>
+      <div class="obj-diary-status-row">${statusBtns}</div>
+      <textarea id="objDiaryTextarea" class="obj-diary-textarea"
+        placeholder="Sé honesto. ¿Qué has hecho HOY para acercarte a tus metas? ¿Has estudiado tu estrategia? ¿Practicado en demo? ¿Ido al gym? ¿Leído algo útil? Acciones concretas, no intenciones.">${preloadText}</textarea>
+      <button class="obj-diary-save-btn" onclick="saveDiaryEntry()">Guardar entrada de hoy</button>
+    </div>
+    <div class="obj-diary-history-title">Historial de acciones</div>
+    <div class="obj-diary-entries">${historyHTML}</div>
+  </div>`;
+}
+
+function renderObjAffirmations() {
+  const cards = objAffirmations.map((text, i) => `
+    <div class="obj-affirm-card" id="affirm-card-${i}" onclick="editAffirmation(${i})">
+      <div class="obj-affirm-text" id="affirm-text-${i}">${escapeHtml(text)}</div>
+      <button class="obj-affirm-del" onclick="deleteAffirmation(event, ${i})" title="Eliminar">×</button>
+    </div>`).join('');
+
+  return `
+  <div class="obj-subsection fade-in">
+    <div class="obj-subsection-title">04 — Affirmations</div>
+    <div class="obj-subsection-heading">Mis Afirmaciones</div>
+    <p class="obj-subsection-desc">Escríbelos con total convicción. Como si ya fueran tu realidad. Dilo en voz alta.</p>
+    <div class="obj-affirm-grid" id="affirmGrid">
+      ${cards}
+      <button class="obj-add-affirm-btn" onclick="addAffirmation()">+ Añadir afirmación</button>
+    </div>
+    <div class="obj-affirm-note">Léelas cada mañana. Dícelas en voz alta. Conviértelas en tu identidad.</div>
+  </div>`;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─────────────────────────────────────────────────────────────
+// OBJETIVOS — EVENT HANDLERS
+// ─────────────────────────────────────────────────────────────
+
+function attachObjEvents() {
+  // Restore diary status from today's existing entry if objDiaryStatus not set
+  const today = todayStr();
+  const existing = objDiary.find(e => e.date === today);
+  if (existing && !objDiaryStatus) { objDiaryStatus = existing.status; }
+}
+
+function toggleShortObj(id) {
+  const item = objShortItems.find(it => it.id === id);
+  if (!item) return;
+  item.done = !item.done;
+  saveObjShortItems();
+
+  const el = document.getElementById('obj-si-' + id);
+  if (el) el.classList.toggle('checked', item.done);
+
+  const total = objShortItems.length;
+  const done  = objShortItems.filter(it => it.done).length;
+  const pct   = total > 0 ? Math.round((done / total) * 100) : 0;
+  const fill  = document.querySelector('.obj-progress-fill');
+  if (fill) fill.style.width = pct + '%';
+  const count = document.querySelector('.obj-progress-count');
+  if (count) count.textContent = done + ' / ' + total + ' completados';
+}
+
+function deleteShortObj(id) {
+  objShortItems = objShortItems.filter(it => it.id !== id);
+  saveObjShortItems();
+  renderObjetivosSection();
+}
+
+function saveShortObj() {
+  const inp = document.getElementById('objShortInput');
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text) return;
+  objShortItems.push({ id: Date.now(), text, done: false });
+  saveObjShortItems();
+  renderObjetivosSection();
+}
+
+function deleteLongObj(id) {
+  objLongItems = objLongItems.filter(it => it.id !== id);
+  saveObjLongItems();
+  renderObjetivosSection();
+}
+
+function saveLongObj() {
+  const iconInp  = document.getElementById('objLongIcon');
+  const titleInp = document.getElementById('objLongTitle');
+  const phraseInp = document.getElementById('objLongPhrase');
+  const title = titleInp ? titleInp.value.trim() : '';
+  if (!title) { if (titleInp) titleInp.focus(); return; }
+  const icon  = iconInp  ? (iconInp.value.trim()  || '🎯') : '🎯';
+  const phrase = phraseInp ? phraseInp.value.trim() : '';
+  objLongItems.push({ id: Date.now(), icon, title, phrase });
+  saveObjLongItems();
+  renderObjetivosSection();
+}
+
+function selectDiaryStatus(status) {
+  objDiaryStatus = status;
+  const btns = document.querySelectorAll('.obj-diary-status-btn');
+  btns.forEach(b => {
+    b.classList.remove('active-good', 'active-meh', 'active-bad');
+  });
+  const target = Array.from(btns).find(b => b.textContent.includes(
+    status === 'good' ? 'En camino' : status === 'meh' ? 'Podría mejorar' : 'Mal día'
+  ));
+  if (target) target.classList.add('active-' + status);
+}
+
+function saveDiaryEntry() {
+  const ta = document.getElementById('objDiaryTextarea');
+  if (!ta) return;
+  const text = ta.value.trim();
+  const today = todayStr();
+
+  // Remove existing entry for today if any
+  objDiary = objDiary.filter(e => e.date !== today);
+  objDiary.push({ date: today, status: objDiaryStatus, text });
+  // Sort descending
+  objDiary.sort((a, b) => b.date.localeCompare(a.date));
+  // Keep last 90 entries max
+  if (objDiary.length > 90) objDiary = objDiary.slice(0, 90);
+  saveObjDiary();
+
+  // Show brief confirmation
+  const btn = document.querySelector('.obj-diary-save-btn');
+  if (btn) {
+    const orig = btn.textContent;
+    btn.textContent = '✓ Guardado';
+    btn.style.background = 'linear-gradient(135deg,#16a34a,#15803d)';
+    setTimeout(() => {
+      if (btn) { btn.textContent = orig; btn.style.background = ''; }
+      // Refresh history
+      const entries = document.querySelector('.obj-diary-entries');
+      if (entries) {
+        const today2 = todayStr();
+        const recent = objDiary.slice().sort((a,b) => b.date.localeCompare(a.date)).slice(0, 7);
+        entries.innerHTML = recent.length === 0
+          ? `<p style="color:var(--text-mut);font-size:0.84rem;text-align:center;padding:20px 0;">Aún no hay entradas. Empieza hoy.</p>`
+          : recent.map(entry => {
+              const preview = entry.text.length > 120 ? entry.text.slice(0, 120) + '…' : entry.text;
+              const badgeLabel = { good: '✅ Actuó', meh: '⚡ Algo', bad: '❌ Nada' }[entry.status] || '';
+              const isTod = entry.date === today2;
+              return `<div class="obj-diary-entry-card">
+                <div class="obj-diary-entry-header">
+                  <span class="obj-diary-entry-date">${formatDateDisplay(entry.date)}${isTod ? ' — hoy' : ''}</span>
+                  ${entry.status ? `<span class="obj-diary-entry-badge ${entry.status}">${badgeLabel}</span>` : ''}
+                </div>
+                <div class="obj-diary-entry-preview">${preview || '<em style="color:var(--text-mut)">Sin texto</em>'}</div>
+              </div>`;
+            }).join('');
+      }
+    }, 1400);
+  }
+}
+
+function addAffirmation() {
+  objAffirmations.push('Nueva afirmación...');
+  saveObjAffirmations();
+  const grid = document.getElementById('affirmGrid');
+  if (!grid) return;
+  const i = objAffirmations.length - 1;
+  const card = document.createElement('div');
+  card.className = 'obj-affirm-card';
+  card.id = 'affirm-card-' + i;
+  card.innerHTML = `<div class="obj-affirm-text" id="affirm-text-${i}">${escapeHtml(objAffirmations[i])}</div>
+    <button class="obj-affirm-del" onclick="deleteAffirmation(event, ${i})" title="Eliminar">×</button>`;
+  card.onclick = function() { editAffirmation(i); };
+  // Insert before the add button
+  grid.insertBefore(card, grid.lastElementChild);
+  editAffirmation(i);
+}
+
+function deleteAffirmation(evt, i) {
+  evt.stopPropagation();
+  if (objAffirmations.length <= 1) return;
+  objAffirmations.splice(i, 1);
+  saveObjAffirmations();
+  renderObjetivosSection();
+}
+
+function editAffirmation(i) {
+  const textEl = document.getElementById('affirm-text-' + i);
+  if (!textEl || textEl.tagName === 'TEXTAREA') return; // already editing
+  const card = document.getElementById('affirm-card-' + i);
+  if (!card) return;
+  const currentText = objAffirmations[i];
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = currentText;
+  input.className = 'obj-affirm-input';
+  input.id = 'affirm-text-' + i;
+  textEl.replaceWith(input);
+  input.focus();
+  input.select();
+
+  function save() {
+    const val = input.value.trim() || currentText;
+    objAffirmations[i] = val;
+    saveObjAffirmations();
+    const newText = document.createElement('div');
+    newText.className = 'obj-affirm-text';
+    newText.id = 'affirm-text-' + i;
+    newText.textContent = val;
+    input.replaceWith(newText);
+    card.onclick = function() { editAffirmation(i); };
+  }
+
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    if (e.key === 'Escape') { input.value = currentText; input.blur(); }
+  });
+  // Prevent card click from re-triggering
+  card.onclick = null;
+}
+
+// ─────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+  const inp = document.getElementById('gotoInput');
+  if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') gotoCase(); });
+
+  renderPhasesOverview();
+  showSection('home');
+  updateProgressStats();
+  _initSync();
+});
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     AI CHATBOT — Trading AI
+     IDs/clases con prefijo chat- para no colisionar
+═══════════════════════════════════════════════════════════ -->
+<style>
+  /* ── Floating button ─────────────────────────────────────── */
+  #chat-fab {
+    position: fixed; bottom: 24px; right: 24px; z-index: 1000;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(59,130,246,0.5), 0 0 0 0 rgba(59,130,246,0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: chat-glow-pulse 3s ease-in-out infinite;
+  }
+  #chat-fab:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 28px rgba(59,130,246,0.65), 0 0 0 6px rgba(59,130,246,0.15);
+    animation: none;
+  }
+  #chat-fab svg { transition: transform 0.25s, opacity 0.2s; }
+  #chat-fab .chat-icon-open  { opacity: 1; }
+  #chat-fab .chat-icon-close { opacity: 0; position: absolute; }
+  #chat-fab.chat-open .chat-icon-open  { opacity: 0; }
+  #chat-fab.chat-open .chat-icon-close { opacity: 1; }
+  @keyframes chat-glow-pulse {
+    0%,100% { box-shadow: 0 4px 20px rgba(59,130,246,0.45), 0 0 0 0 rgba(59,130,246,0.3); }
+    50%      { box-shadow: 0 4px 24px rgba(59,130,246,0.6), 0 0 0 8px rgba(59,130,246,0.0); }
+  }
+
+  /* ── Panel ───────────────────────────────────────────────── */
+  #chat-panel {
+    position: fixed; bottom: 92px; right: 24px; z-index: 999;
+    width: 420px; height: 600px;
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    border-radius: 16px;
+    display: flex; flex-direction: column;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.9), 0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04);
+    transform: translateY(20px) scale(0.97);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.22s ease;
+    overflow: hidden;
+  }
+  #chat-panel.chat-visible {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: all;
+  }
+  @media (max-width: 480px) {
+    #chat-panel {
+      width: 100%; right: 0; bottom: 0;
+      border-radius: 16px 16px 0 0;
+      height: 75vh;
+    }
+    #chat-fab { bottom: 16px; right: 16px; }
+  }
+
+  /* ── Header ──────────────────────────────────────────────── */
+  #chat-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid #1a1a1a;
+    background: #0a0a0a;
+    flex-shrink: 0;
+  }
+  #chat-header-icon {
+    width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 10px rgba(59,130,246,0.4);
+  }
+  #chat-header-info { flex: 1; min-width: 0; }
+  #chat-header-title {
+    font-size: 0.92rem; font-weight: 700;
+    background: linear-gradient(90deg, #e2e8f0, #3b82f6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    line-height: 1.2;
+  }
+  #chat-header-sub {
+    font-size: 0.68rem; color: #26a69a; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; margin-top: 1px;
+  }
+  #chat-status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #475569; flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  #chat-status-dot.online  { background: #26a69a; animation: chat-blink 2s ease-in-out infinite; }
+  #chat-status-dot.offline { background: #ef5350; }
+  @keyframes chat-blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  #chat-close-btn {
+    background: none; border: none; color: #475569; cursor: pointer;
+    padding: 4px 6px; border-radius: 6px; line-height: 1; font-size: 1.1rem;
+    transition: color 0.15s, background 0.15s; flex-shrink: 0;
+  }
+  #chat-close-btn:hover { color: #94a3b8; background: rgba(255,255,255,0.06); }
+
+  /* ── Messages area ───────────────────────────────────────── */
+  #chat-messages {
+    flex: 1; overflow-y: auto; padding: 14px 14px 8px;
+    display: flex; flex-direction: column; gap: 10px;
+    scrollbar-width: thin; scrollbar-color: #1a1a1a transparent;
+  }
+  #chat-messages::-webkit-scrollbar { width: 4px; }
+  #chat-messages::-webkit-scrollbar-track { background: transparent; }
+  #chat-messages::-webkit-scrollbar-thumb { background: #1a1a1a; border-radius: 2px; }
+
+  .chat-msg-wrap { display: flex; flex-direction: column; gap: 3px; animation: chat-msg-in 0.22s ease; }
+  @keyframes chat-msg-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  .chat-msg-wrap.chat-user { align-items: flex-end; }
+  .chat-msg-wrap.chat-bot  { align-items: flex-start; }
+
+  .chat-bubble {
+    max-width: 88%; padding: 10px 13px;
+    border-radius: 12px; font-size: 0.86rem;
+    line-height: 1.65; word-break: break-word;
+    position: relative;
+  }
+  .chat-msg-wrap.chat-bot .chat-bubble {
+    background: #111111;
+    border-left: 2px solid #3b82f6;
+    border-radius: 4px 12px 12px 4px;
+    color: #e2e8f0;
+  }
+  .chat-msg-wrap.chat-user .chat-bubble {
+    background: rgba(59,130,246,0.12);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 12px 12px 4px 12px;
+    color: #e2e8f0;
+  }
+  .chat-timestamp {
+    font-size: 0.65rem; color: #334155;
+    padding: 0 4px;
+  }
+  /* Markdown inside bubbles */
+  .chat-bubble strong { color: #e2e8f0; font-weight: 700; }
+  .chat-bubble code {
+    background: rgba(59,130,246,0.15); color: #93c5fd;
+    padding: 1px 5px; border-radius: 4px; font-family: 'SF Mono', monospace;
+    font-size: 0.82em;
+  }
+
+  /* image thumbnail in user bubble */
+  .chat-img-thumb {
+    width: 80px; height: 80px; object-fit: cover; border-radius: 8px;
+    border: 1px solid rgba(59,130,246,0.3); display: block; margin-top: 6px;
+  }
+
+  /* Typing indicator */
+  #chat-typing-indicator { display: none; align-items: center; gap: 6px; padding: 0 14px 6px; }
+  #chat-typing-indicator.visible { display: flex; }
+  .chat-typing-dots { display: flex; gap: 4px; }
+  .chat-typing-dots span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #3b82f6; opacity: 0.5;
+    animation: chat-dot-bounce 1.2s ease-in-out infinite;
+  }
+  .chat-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .chat-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes chat-dot-bounce {
+    0%,60%,100% { transform: translateY(0); opacity: 0.4; }
+    30%          { transform: translateY(-5px); opacity: 1; }
+  }
+  .chat-typing-label { font-size: 0.72rem; color: #475569; }
+
+  /* ── Apply banner ────────────────────────────────────────── */
+  .chat-apply-banner {
+    margin: 4px 0; padding: 10px 13px;
+    background: rgba(38,166,154,0.07); border: 1px solid rgba(38,166,154,0.3);
+    border-radius: 10px; font-size: 0.82rem; color: #94a3b8;
+    animation: chat-msg-in 0.2s ease;
+  }
+  .chat-apply-banner strong { color: #26a69a; }
+  .chat-apply-btns { display: flex; gap: 8px; margin-top: 8px; }
+  .chat-apply-go {
+    background: linear-gradient(135deg, #16a34a, #15803d); color: white;
+    border: none; padding: 6px 16px; border-radius: 7px; font-size: 0.8rem;
+    font-weight: 600; cursor: pointer; transition: all 0.15s;
+    box-shadow: 0 2px 10px rgba(22,163,74,0.3);
+  }
+  .chat-apply-go:hover { box-shadow: 0 3px 14px rgba(22,163,74,0.5); transform: translateY(-1px); }
+  .chat-apply-cancel {
+    background: none; border: 1px solid #1a1a1a; color: #475569;
+    padding: 6px 14px; border-radius: 7px; font-size: 0.8rem;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .chat-apply-cancel:hover { border-color: #334155; color: #94a3b8; }
+
+  /* ── Error / server down banner ─────────────────────────── */
+  .chat-server-down {
+    margin: 6px 0; padding: 10px 13px;
+    background: rgba(239,83,80,0.07); border: 1px solid rgba(239,83,80,0.25);
+    border-left: 3px solid #ef5350;
+    border-radius: 4px 10px 10px 4px;
+    font-size: 0.82rem; color: #fca5a5; line-height: 1.6;
+  }
+  .chat-server-down code { background: rgba(239,83,80,0.15); color: #fca5a5; padding: 1px 5px; border-radius: 3px; font-size: 0.8em; }
+
+  /* ── Image preview ───────────────────────────────────────── */
+  #chat-img-preview-wrap {
+    display: none; align-items: center; gap: 8px;
+    padding: 8px 14px 0; flex-shrink: 0;
+  }
+  #chat-img-preview-wrap.visible { display: flex; }
+  #chat-img-preview {
+    width: 56px; height: 56px; object-fit: cover;
+    border-radius: 8px; border: 1px solid rgba(59,130,246,0.35);
+  }
+  #chat-img-remove {
+    background: rgba(239,83,80,0.15); border: 1px solid rgba(239,83,80,0.3);
+    color: #ef5350; width: 22px; height: 22px; border-radius: 50%;
+    font-size: 0.85rem; cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #chat-img-remove:hover { background: rgba(239,83,80,0.3); }
+  .chat-img-label { font-size: 0.75rem; color: #475569; }
+
+  /* ── Input area ──────────────────────────────────────────── */
+  #chat-input-area {
+    border-top: 1px solid #1a1a1a; background: #111111;
+    padding: 10px 12px; flex-shrink: 0;
+    display: flex; align-items: flex-end; gap: 8px;
+  }
+  #chat-textarea {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: #e2e8f0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 0.87rem; line-height: 1.55; resize: none; padding: 5px 0;
+    max-height: 120px; overflow-y: auto; min-height: 22px;
+    scrollbar-width: thin; scrollbar-color: #1a1a1a transparent;
+  }
+  #chat-textarea::placeholder { color: #334155; }
+  #chat-textarea::-webkit-scrollbar { width: 3px; }
+  #chat-textarea::-webkit-scrollbar-thumb { background: #1a1a1a; border-radius: 2px; }
+
+  #chat-attach-btn {
+    background: none; border: none; color: #334155; cursor: pointer;
+    padding: 5px 5px; border-radius: 7px; transition: all 0.15s;
+    display: flex; align-items: center; flex-shrink: 0;
+  }
+  #chat-attach-btn:hover { color: #3b82f6; background: rgba(59,130,246,0.1); }
+
+  #chat-send-btn {
+    background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;
+    border: none; width: 34px; height: 34px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+    box-shadow: 0 2px 10px rgba(59,130,246,0.35);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  #chat-send-btn:hover { transform: scale(1.07); box-shadow: 0 3px 14px rgba(59,130,246,0.5); }
+  #chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+</style>
+
+<!-- Floating button -->
+<button id="chat-fab" onclick="chatToggle()" aria-label="Abrir chat AI" title="Trading AI">
+  <svg class="chat-icon-open" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+  <svg class="chat-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+  </svg>
+</button>
+
+<!-- Chat panel -->
+<div id="chat-panel" role="dialog" aria-label="Trading AI chat">
+
+  <!-- Header -->
+  <div id="chat-header">
+    <div id="chat-header-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+    </div>
+    <div id="chat-header-info">
+      <div id="chat-header-title">Trading AI</div>
+      <div id="chat-header-sub">EUR/USD · SMC Strategy</div>
+    </div>
+    <div id="chat-status-dot" title="Estado del servidor"></div>
+    <button id="chat-close-btn" onclick="chatToggle()" aria-label="Cerrar chat">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div id="chat-messages"></div>
+
+  <!-- Typing indicator -->
+  <div id="chat-typing-indicator">
+    <div class="chat-typing-dots">
+      <span></span><span></span><span></span>
+    </div>
+    <span class="chat-typing-label">Trading AI está escribiendo…</span>
+  </div>
+
+  <!-- Image preview -->
+  <div id="chat-img-preview-wrap">
+    <img id="chat-img-preview" src="" alt="preview">
+    <button id="chat-img-remove" onclick="chatRemoveImage()" title="Quitar imagen">×</button>
+    <span class="chat-img-label">Imagen adjunta</span>
+  </div>
+
+  <!-- Input area -->
+  <div id="chat-input-area">
+    <input type="file" id="chat-file-input" accept="image/*" style="display:none" onchange="chatHandleFile(event)">
+    <button id="chat-attach-btn" onclick="document.getElementById('chat-file-input').click()" title="Adjuntar imagen">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+      </svg>
+    </button>
+    <textarea id="chat-textarea" rows="1" placeholder="Pregunta, analiza un chart…"
+      onkeydown="chatHandleKey(event)"
+      oninput="chatAutoResize(this)"></textarea>
+    <button id="chat-send-btn" onclick="chatSend()" title="Enviar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ── State ─────────────────────────────────────────────── */
+  let chatMessages    = [];
+  let chatIsOpen      = false;
+  let chatIsStreaming = false;
+  let chatCurrentB64  = null;
+  let chatCurrentType = null;
+  let chatWelcomed    = false;
+
+  const API_BASE = 'http://localhost:5000';
+
+  /* ── DOM refs ──────────────────────────────────────────── */
+  const $panel    = document.getElementById('chat-panel');
+  const $fab      = document.getElementById('chat-fab');
+  const $msgs     = document.getElementById('chat-messages');
+  const $typing   = document.getElementById('chat-typing-indicator');
+  const $textarea = document.getElementById('chat-textarea');
+  const $sendBtn  = document.getElementById('chat-send-btn');
+  const $dot      = document.getElementById('chat-status-dot');
+  const $prevWrap = document.getElementById('chat-img-preview-wrap');
+  const $prevImg  = document.getElementById('chat-img-preview');
+
+  /* ── Toggle ─────────────────────────────────────────────── */
+  window.chatToggle = function() {
+    chatIsOpen = !chatIsOpen;
+    $panel.classList.toggle('chat-visible', chatIsOpen);
+    $fab.classList.toggle('chat-open', chatIsOpen);
+    if (chatIsOpen) {
+      chatCheckServer();
+      if (!chatWelcomed) {
+        chatWelcomed = true;
+        chatAddBotMessage('Hola Pablo. ¿Qué analizamos hoy?');
+      }
+      setTimeout(() => $textarea.focus(), 200);
+    }
+  };
+
+  /* ── Server health ─────────────────────────────────────── */
+  async function chatCheckServer() {
+    try {
+      const r = await fetch(API_BASE + '/api/health', { signal: AbortSignal.timeout(3000) });
+      if (r.ok) { $dot.className = 'online'; return true; }
+    } catch (_) {}
+    $dot.className = 'offline';
+    return false;
+  }
+
+  /* ── Auto-resize textarea ──────────────────────────────── */
+  window.chatAutoResize = function(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  };
+
+  /* ── Key handler ────────────────────────────────────────── */
+  window.chatHandleKey = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      chatSend();
+    }
+  };
+
+  /* ── File handling ─────────────────────────────────────── */
+  window.chatHandleFile = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const dataUrl = ev.target.result;
+      chatCurrentB64  = dataUrl.split(',')[1];
+      chatCurrentType = file.type || 'image/jpeg';
+      $prevImg.src = dataUrl;
+      $prevWrap.classList.add('visible');
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  window.chatRemoveImage = function() {
+    chatCurrentB64  = null;
+    chatCurrentType = null;
+    $prevImg.src = '';
+    $prevWrap.classList.remove('visible');
+  };
+
+  /* ── Markdown (minimal) ────────────────────────────────── */
+  function chatRenderMarkdown(text) {
+    return text
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\n/g, '<br>');
+  }
+
+  /* ── Time formatting ────────────────────────────────────── */
+  function chatNow() {
+    const d = new Date();
+    return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+  }
+
+  /* ── Add user message ───────────────────────────────────── */
+  function chatAddUserMessage(text, imgB64) {
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-msg-wrap chat-user';
+    const imgHtml = imgB64 ? `<img class="chat-img-thumb" src="data:${imgType || 'image/jpeg'};base64,${imgB64}" alt="imagen adjunta">` : '';
+    wrap.innerHTML = `
+      <div class="chat-bubble">${chatRenderMarkdown(text)}${imgHtml}</div>
+      <span class="chat-timestamp">${chatNow()}</span>`;
+    $msgs.appendChild(wrap);
+    chatScrollBottom();
+    return wrap;
+  }
+
+  /* ── Add bot message (returns bubble for streaming) ────── */
+  function chatAddBotMessage(text) {
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-msg-wrap chat-bot';
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble';
+    bubble.innerHTML = chatRenderMarkdown(text);
+    const ts = document.createElement('span');
+    ts.className = 'chat-timestamp';
+    ts.textContent = chatNow();
+    wrap.appendChild(bubble);
+    wrap.appendChild(ts);
+    $msgs.appendChild(wrap);
+    chatScrollBottom();
+    return { wrap, bubble, ts };
+  }
+
+  /* ── Error message ─────────────────────────────────────── */
+  function chatAddError(msg) {
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-msg-wrap chat-bot';
+    wrap.innerHTML = `<div class="chat-server-down">${msg}</div>`;
+    $msgs.appendChild(wrap);
+    chatScrollBottom();
+  }
+
+  /* ── Parse [APPLY:...] from bot response ───────────────── */
+  function chatParseApply(fullText) {
+    const match = fullText.match(/\[APPLY:([^:]+):([^\]]+)\]/);
+    if (!match) return null;
+    return { file: match[1].trim(), desc: match[2].trim() };
+  }
+
+  /* ── HTML escaping (prevents XSS from model output) ────── */
+  function chatEscHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ── Render apply banner ────────────────────────────────── */
+  function chatRenderApplyBanner(file, desc) {
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-msg-wrap chat-bot';
+    const uid = 'apply-' + Date.now();
+    wrap.innerHTML = `
+      <div class="chat-apply-banner" id="${uid}">
+        El bot quiere modificar: <strong>${chatEscHtml(file)}</strong><br>
+        <span style="color:#94a3b8;">${chatEscHtml(desc)}</span>
+        <div class="chat-apply-btns">
+          <button class="chat-apply-go" onclick="chatApplyChange('${uid}','${encodeURIComponent(file)}','${encodeURIComponent(desc)}')">Aplicar</button>
+          <button class="chat-apply-cancel" onclick="this.closest('.chat-apply-banner').remove()">Cancelar</button>
+        </div>
+      </div>`;
+    $msgs.appendChild(wrap);
+    chatScrollBottom();
+  }
+
+  /* ── Apply change ───────────────────────────────────────── */
+  window.chatApplyChange = async function(uid, file, desc) {
+    const banner = document.getElementById(uid);
+    if (!banner) return;
+    const btns = banner.querySelector('.chat-apply-btns');
+    if (btns) { btns.innerHTML = '<span style="color:#475569;font-size:0.8rem">Aplicando…</span>'; }
+    try {
+      const r = await fetch(API_BASE + '/api/modify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file: decodeURIComponent(file), instruction: decodeURIComponent(desc) })
+      });
+      if (r.ok) {
+        banner.innerHTML = '<strong style="color:#26a69a">✓ Cambio aplicado.</strong> Recarga la página para verlo.';
+      } else {
+        const err = await r.json().catch(() => ({}));
+        banner.innerHTML = `<span style="color:#ef5350">Error al aplicar: ${err.error || r.status}</span>`;
+      }
+    } catch (_) {
+      banner.innerHTML = '<span style="color:#ef5350">No se pudo conectar con el servidor.</span>';
+    }
+    chatScrollBottom();
+  };
+
+  /* ── Scroll to bottom ───────────────────────────────────── */
+  function chatScrollBottom() {
+    requestAnimationFrame(() => { $msgs.scrollTop = $msgs.scrollHeight; });
+  }
+
+  /* ── Show / hide typing ─────────────────────────────────── */
+  function chatSetTyping(v) {
+    $typing.classList.toggle('visible', v);
+    if (v) chatScrollBottom();
+  }
+
+  /* ── Main send ──────────────────────────────────────────── */
+  window.chatSend = async function() {
+    const text = $textarea.value.trim();
+    if (!text || chatIsStreaming) return;
+
+    const imgB64  = chatCurrentB64;
+    const imgType = chatCurrentType;
+
+    // Add to history (image sent separately — don't accumulate base64 in history)
+    chatMessages.push({ role: 'user', content: text });
+
+    // UI
+    chatAddUserMessage(text, imgB64);
+    $textarea.value = '';
+    $textarea.style.height = 'auto';
+    chatRemoveImage();
+    $sendBtn.disabled = true;
+    chatIsStreaming = true;
+    chatSetTyping(true);
+
+    try {
+      const serverOk = await chatCheckServer();
+      if (!serverOk) {
+        chatSetTyping(false);
+        chatAddError('El servidor no responde. Inícialo con: <code>python server.py</code>');
+        chatMessages.pop();
+        $sendBtn.disabled = false;
+        chatIsStreaming = false;
+        return;
+      }
+
+      const response = await fetch(API_BASE + '/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: chatMessages,
+          image_base64: imgB64 || null,
+          image_type: imgType || null
+        }),
+        signal: AbortSignal.timeout(60000)
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || 'HTTP ' + response.status);
+      }
+
+      chatSetTyping(false);
+      const { bubble, ts } = chatAddBotMessage('');
+      let fullText = '';
+
+      const reader   = response.body.getReader();
+      const decoder  = new TextDecoder();
+      let   buffer   = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+
+        let doneSignal = false;
+        for (const line of lines) {
+          if (!line.startsWith('data:')) continue;
+          const raw = line.slice(5).trim();
+          if (raw === '[DONE]') { doneSignal = true; break; }
+          try {
+            const obj = JSON.parse(raw);
+            if (obj.text) {
+              fullText += obj.text;
+              bubble.innerHTML = chatRenderMarkdown(fullText);
+              chatScrollBottom();
+            }
+            if (obj.error) throw new Error(obj.error);
+          } catch (pe) {
+            if (pe.message && pe.message !== 'Unexpected end of JSON input') {
+              fullText += raw;
+              bubble.innerHTML = chatRenderMarkdown(fullText);
+              chatScrollBottom();
+            }
+          }
+        }
+        if (doneSignal) break;
+      }
+
+      ts.textContent = chatNow();
+
+      // Store assistant reply
+      const assistantMsg = { role: 'assistant', content: fullText };
+      chatMessages.push(assistantMsg);
+
+      // Check for [APPLY:...] directive
+      const applyCmd = chatParseApply(fullText);
+      if (applyCmd) chatRenderApplyBanner(applyCmd.file, applyCmd.desc);
+
+      // Keep history to last 20 messages (10 turns)
+      if (chatMessages.length > 20) chatMessages = chatMessages.slice(-20);
+
+    } catch (err) {
+      chatSetTyping(false);
+      if (err.name === 'AbortError' || err.name === 'TimeoutError') {
+        chatAddError('La petición tardó demasiado. Intenta de nuevo.');
+      } else {
+        chatAddError('Error: ' + (err.message || 'problema desconocido') +
+          '<br><span style="font-size:0.75rem;color:#475569;margin-top:4px;display:block">Asegúrate de que el servidor está corriendo: <code>python server.py</code></span>');
+      }
+      chatMessages.pop();
+    } finally {
+      $sendBtn.disabled = false;
+      chatIsStreaming = false;
+    }
+  };
+
+  /* ── Close on Escape ────────────────────────────────────── */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && chatIsOpen) chatToggle();
+  });
+
+})();
+</script>
+</body>
+</html>
