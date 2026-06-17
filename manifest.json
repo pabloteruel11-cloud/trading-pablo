@@ -1,7 +1,7 @@
 {
-  "name": "Trading Pablo",
-  "short_name": "Trading",
-  "description": "Plan de estudio y seguimiento de trading EUR/USD",
+  "name": "Núcleo",
+  "short_name": "Núcleo",
+  "description": "El centro de tu proyecto de trading: aprendizaje (botflow), registro e inversión",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
