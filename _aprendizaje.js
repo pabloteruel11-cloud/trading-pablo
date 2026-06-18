@@ -5,9 +5,9 @@
 // CONTRATO (no tocar la forma; el render de index.html lo consume):
 //   window.APRENDIZAJE = { fases:[...], lecciones:[...] }
 //
-// Los números y parámetros citados reflejan los DEFAULTS del código vigente
-// (BotflowSweep_v3.cs, bloque State.SetDefaults). Si algo discrepaba con los planes,
-// gana el código (ver resumen del agente).
+// Los números y parámetros citados reflejan la CONFIG EN VIVO del bot (MES, "Run 17/8"),
+// la que realmente se opera en NinjaTrader — NO los defaults de fábrica del .cs.
+// Mantener sincronizado con la estrategia real (ver botflow/registros/REGISTRO-DEMO-FORWARD.md).
 //
 // Tipos de 'chart' válidos (los dibuja ChartEngine.drawTutorialChart):
 //   'eql_sweep', 'eqh_sweep', 'full_setup_long', 'full_setup_short',
@@ -95,7 +95,7 @@ window.APRENDIZAJE = {
         '<p>El MES cotiza casi <strong>23 horas al día</strong> (esta sesión casi continua se llama <strong>Globex</strong>). Pero no todas esas horas valen lo mismo. La mayoría del día hay poca gente operando: el mercado está "fino", los movimientos son bruscos y engañosos.</p>' +
         '<p>La hora buena es la <strong>RTH</strong> (<em>Regular Trading Hours</em>, el horario regular): de <strong>9:30 a 16:00 hora del Este de EE.UU. (ET)</strong>, que es cuando abre la bolsa de Nueva York. En esas horas hay muchísimos participantes, el volumen es real y el order flow (lo que estudiaremos) tiene sentido.</p>' +
         '<p><strong>Truco de hora:</strong> en España siempre vas <strong>+6 horas</strong> sobre Nueva York (cambiáis la hora a la vez). Así que las 9:30 ET son las <strong>15:30</strong> en España.</p>' +
-        '<p>El bot solo busca operaciones dentro de la RTH, y de hecho aún más afinado: su ventana por defecto es de <strong>9:30 a 11:00 ET</strong> (15:30 a 17:00 en España), la franja de mayor volumen y mejores señales del día. Fuera de esas horas, el bot mira pero no entra.</p>',
+        '<p>El bot solo busca operaciones dentro de la RTH: su ventana de trabajo es de <strong>9:30 a 15:30 ET</strong> (15:30 a 21:30 en España), es decir, casi toda la sesión regular. A partir de las 15:30 ET ya no abre operaciones nuevas, y a las 15:55 ET cierra a la fuerza lo que quede abierto. Fuera de la RTH, el bot mira pero no entra.</p>',
       claves: [
         'Globex — la sesión casi 24h; libro fino, ruido fuera de la RTH',
         'RTH — horario regular 9:30-16:00 ET, cuando el mercado tiene liquidez de verdad',
@@ -277,7 +277,7 @@ window.APRENDIZAJE = {
       contenido:
         '<p>El barrido por sí solo no basta: hace falta que el precio <strong>recupere</strong> el nivel. A esa recuperación se le llama <strong>reclaim</strong>. La señal completa del bot, para un largo, son tres pasos:</p>' +
         '<ul>' +
-        '<li><strong>1. Penetración:</strong> el precio rompe un nivel-soporte hacia abajo. Tiene que ser una perforación de verdad pero no una fuga: entre <strong>2 y 8 ticks</strong> (lo veremos en la próxima lección).</li>' +
+        '<li><strong>1. Penetración:</strong> el precio rompe un nivel-soporte hacia abajo. Tiene que ser una perforación de verdad pero no una fuga: entre <strong>2 y 14 ticks</strong> (lo veremos en la próxima lección).</li>' +
         '<li><strong>2. Delta extremo:</strong> durante ese barrido aparece una agresión vendedora muy fuerte (delta muy negativo). Es la avalancha que caza los stops.</li>' +
         '<li><strong>3. Reclaim:</strong> el precio vuelve a subir por encima del nivel barrido en menos de <strong>120 segundos</strong>. La trampa se cierra: los vendedores quedan atrapados.</li>' +
         '</ul>' +
@@ -306,20 +306,20 @@ window.APRENDIZAJE = {
         '<p>No vale cualquier perforación de un nivel. El bot exige que el barrido tenga una profundidad concreta, controlada por dos parámetros:</p>' +
         '<ul>' +
         '<li><strong>MinPenetrationTicks = 2:</strong> el precio debe perforar el nivel al menos 2 ticks (0,5 puntos). Si solo lo roza, es ruido, no un barrido de verdad.</li>' +
-        '<li><strong>MaxPenetrationTicks = 8:</strong> el precio no puede perforar más de 8 ticks (2 puntos). Si se va más allá, ya no es una trampa: es una <strong>ruptura real</strong> (breakout), y fadear una ruptura real es peligroso.</li>' +
+        '<li><strong>MaxPenetrationTicks = 14:</strong> el precio no puede perforar más de 14 ticks (3,5 puntos). Si se va más allá, ya no es una trampa: es una <strong>ruptura real</strong> (breakout), y fadear una ruptura real es peligroso.</li>' +
         '</ul>' +
-        '<p>Piensa en una resistencia en <strong>5325,00</strong> (el diagrama muestra un barrido de máximos iguales sobre una resistencia). Para que sea un sweep válido al alza, el precio tiene que asomar entre 5325,50 (2 ticks) y 5327,00 (8 ticks) por encima. Si dispara hasta 5330, el nivel se considera "quemado": el bot entiende que se ha roto de verdad y no entra.</p>' +
-        '<p>Esta es la diferencia clave entre un <em>fader</em> (que opera contra barridos falsos) y un seguidor de tendencias. El bot solo quiere las perforaciones que <strong>fracasan</strong>, no las que tienen éxito. La ventana 2-8 ticks es justo ese punto dulce.</p>',
+        '<p>Piensa en una resistencia en <strong>5325,00</strong> (el diagrama muestra un barrido de máximos iguales sobre una resistencia). Para que sea un sweep válido al alza, el precio tiene que asomar entre 5325,50 (2 ticks) y 5328,50 (14 ticks) por encima. Si dispara hasta 5332, el nivel se considera "quemado": el bot entiende que se ha roto de verdad y no entra.</p>' +
+        '<p>Esta es la diferencia clave entre un <em>fader</em> (que opera contra barridos falsos) y un seguidor de tendencias. El bot solo quiere las perforaciones que <strong>fracasan</strong>, no las que tienen éxito. La ventana 2-14 ticks es justo ese punto dulce.</p>',
       claves: [
         'MinPenetrationTicks = 2 — perforación mínima para que cuente como barrido',
-        'MaxPenetrationTicks = 8 — más allá es ruptura real; el nivel se quema',
+        'MaxPenetrationTicks = 14 — más allá es ruptura real; el nivel se quema',
         'Breakout — una ruptura real (no una trampa); el bot NO la fadea'
       ],
       quiz: {
-        pregunta: 'El bot vigila una resistencia. El precio la supera por 12 ticks de golpe. ¿Qué hace el bot?',
+        pregunta: 'El bot vigila una resistencia. El precio la supera por 20 ticks de golpe. ¿Qué hace el bot?',
         opciones: ['Entra corto inmediatamente', 'Considera el nivel quemado (es una ruptura real, no una trampa) y no entra', 'Espera a que suba aún más'],
         correcta: 1,
-        explicacion: 'Superar el máximo permitido (8 ticks) significa ruptura real, no barrido. El bot quema ese nivel y no opera contra él: fadear una ruptura de verdad es peligroso.'
+        explicacion: 'Superar el máximo permitido (14 ticks) significa ruptura real, no barrido. El bot quema ese nivel y no opera contra él: fadear una ruptura de verdad es peligroso.'
       }
     },
     {
@@ -334,7 +334,7 @@ window.APRENDIZAJE = {
         '<ul>' +
         '<li><strong>PDH / PDL</strong> (<em>Previous Day High / Low</em>): el máximo y el mínimo de la sesión RTH de <strong>ayer</strong>. Son los niveles más respetados.</li>' +
         '<li><strong>ONH / ONL</strong> (<em>Overnight High / Low</em>): el máximo y el mínimo de la sesión <strong>nocturna</strong> (lo que pasó mientras EE.UU. dormía).</li>' +
-        '<li><strong>Máximo / mínimo de la sesión</strong> en curso (un nivel opcional que el bot puede usar).</li>' +
+        '<li><strong>Máximo / mínimo de la sesión</strong> en curso (SesH / SesL): también activos como niveles que el bot vigila.</li>' +
         '<li><strong>Opening Range (ORH / ORL)</strong>: el máximo y el mínimo de los <strong>primeros 15 minutos</strong> de la RTH. Es un imán clásico del inicio del día.</li>' +
         '</ul>' +
         '<p>Ejemplo: si ayer el S&amp;P hizo máximo en <strong>5325</strong> (PDH) y mínimo en <strong>5290</strong> (PDL), hoy el bot tendrá esos dos precios marcados. Un barrido sobre 5325 sería candidato a corto; un barrido bajo 5290, candidato a largo.</p>' +
@@ -361,21 +361,21 @@ window.APRENDIZAJE = {
       chart: null,
       contenido:
         '<p>No basta con que haya un sweep y un reclaim: el bot exige que el barrido se haya hecho con una agresión <strong>realmente extrema</strong>. Para eso usa un <strong>filtro de delta por percentil</strong>.</p>' +
-        '<p>¿Qué es un percentil? Imagina que apuntas el delta (en valor absoluto) de las últimas <strong>200 velas</strong> de 5 minutos. El bot las ordena de menor a mayor. El <strong>percentil 90</strong> es el valor que supera al 90% de ellas: solo el 10% más extremo lo pasa.</p>' +
-        '<p>El parámetro <strong>DeltaPercentile = 90</strong> significa exactamente eso: el delta del barrido tiene que estar entre el <strong>10% más fuerte</strong> de los últimos tiempos. Si la agresión es normalita, no entra: probablemente no haya stops disparándose en masa.</p>' +
+        '<p>¿Qué es un percentil? Imagina que apuntas el delta (en valor absoluto) de las últimas <strong>200 velas</strong> de 5 minutos. El bot las ordena de menor a mayor. El <strong>percentil 75</strong> es el valor que supera al 75% de ellas: solo el 25% más extremo lo pasa.</p>' +
+        '<p>El parámetro <strong>DeltaPercentile = 75</strong> significa exactamente eso: el delta del barrido tiene que estar entre el <strong>25% más fuerte</strong> de los últimos tiempos. Si la agresión es normalita, no entra: probablemente no haya stops disparándose en masa.</p>' +
         '<p>Además, el signo tiene que ser coherente. Para un largo (barrido de soporte), el delta debe ser <strong>vendedor</strong> (negativo): son las ventas en pánico que el bot quiere ver agotarse. Para un corto, comprador (positivo).</p>' +
         '<p>Este filtro es lo que separa esta estrategia de "comprar cualquier dip". El bot solo apuesta cuando la avalancha de agresión es tan grande que probablemente sea capitulación... justo antes de revertir.</p>',
       claves: [
-        'Percentil 90 — el valor que supera al 90% de las medidas; solo el 10% más extremo',
-        'DeltaPercentile = 90 — el delta del barrido debe estar entre el 10% más fuerte',
+        'Percentil 75 — el valor que supera al 75% de las medidas; solo el 25% más extremo',
+        'DeltaPercentile = 75 — el delta del barrido debe estar entre el 25% más fuerte',
         'PercentileWindow = 200 — se comparan las últimas 200 velas de 5 min',
         'Signo del delta — vendedor para largos, comprador para cortos'
       ],
       quiz: {
-        pregunta: 'Con DeltaPercentile = 90, ¿qué barridos deja pasar el filtro de delta?',
-        opciones: ['Todos los barridos', 'Solo aquellos cuyo delta está entre el 10% más extremo de las últimas velas', 'Solo barridos con delta cero'],
+        pregunta: 'Con DeltaPercentile = 75, ¿qué barridos deja pasar el filtro de delta?',
+        opciones: ['Todos los barridos', 'Solo aquellos cuyo delta está entre el 25% más extremo de las últimas velas', 'Solo barridos con delta cero'],
         correcta: 1,
-        explicacion: 'El percentil 90 deja pasar únicamente el 10% más extremo. El bot quiere agresión de capitulación, no movimientos normales.'
+        explicacion: 'El percentil 75 deja pasar únicamente el 25% más extremo. El bot quiere agresión de capitulación, no movimientos normales.'
       }
     },
     {
@@ -389,7 +389,7 @@ window.APRENDIZAJE = {
         '<p>Toda la estrategia se resume en una palabra: el bot es un <strong>fader</strong>. "To fade" en inglés es operar <strong>en contra</strong> de un movimiento, apostando a que se gira.</p>' +
         '<p>Cuando el precio barre un máximo con una avalancha de compras agresivas, la mayoría de la gente piensa "ruptura, voy largo". El fader hace lo contrario: si esa ruptura <strong>fracasa</strong> (el precio no aguanta arriba y vuelve a caer), el fader entra <strong>corto</strong>, contra el barrido. El diagrama muestra justo eso: un barrido de resistencia que falla y se convierte en una entrada corta.</p>' +
         '<p>¿Por qué tiene sentido? Porque ese barrido fallido deja a un montón de operadores <strong>atrapados</strong> en el lado equivocado. Cuando se den cuenta y cierren sus posiciones (comprando para cerrar sus cortos, o vendiendo para cerrar sus largos), empujarán el precio justo en la dirección del fader.</p>' +
-        '<p>Por eso es tan importante todo lo anterior: la penetración controlada (2-8 ticks), el reclaim rápido (120 s) y el delta extremo (percentil 90). Sin ellos, el fader estaría apostando contra movimientos de verdad, que es la forma más rápida de perder. Con ellos, solo fadea las <strong>trampas</strong>.</p>',
+        '<p>Por eso es tan importante todo lo anterior: la penetración controlada (2-14 ticks), el reclaim rápido (120 s) y el delta extremo (percentil 75). Sin ellos, el fader estaría apostando contra movimientos de verdad, que es la forma más rápida de perder. Con ellos, solo fadea las <strong>trampas</strong>.</p>',
       claves: [
         'Fader — opera CONTRA el barrido, apostando a que la ruptura fracasa',
         'Trapped traders — los atrapados en el lado equivocado; su cierre empuja a favor del fader',
@@ -416,14 +416,14 @@ window.APRENDIZAJE = {
         '<p>La lógica: si la idea era "el barrido fracasó y el precio revierte", entonces el punto que <strong>invalida</strong> esa idea es el extremo del propio barrido. Si el precio vuelve allí, la trampa no era tal. Por eso el stop se coloca en el <strong>extremo del sweep, más un pequeño colchón</strong> (StopBufferTicks = 2 ticks).</p>' +
         '<p>El bot además controla que ese stop tenga un tamaño razonable:</p>' +
         '<ul>' +
-        '<li><strong>MinStopPoints = 4:</strong> si el stop sale demasiado pequeño (menos de 4 puntos), el barrido era muy superficial; el bot lo descarta (sería puro ruido y los costes se lo comerían).</li>' +
+        '<li><strong>MinStopPoints = 2,5:</strong> si el stop sale demasiado pequeño (menos de 2,5 puntos), el barrido era muy superficial; el bot lo descarta (sería puro ruido y los costes se lo comerían).</li>' +
         '<li><strong>MaxStopPoints = 10:</strong> si sale demasiado grande (más de 10 puntos), el riesgo es desproporcionado; también lo descarta.</li>' +
         '</ul>' +
         '<p>Como extra de seguridad, el bot tampoco acepta un stop mayor que <strong>2 veces el ATR</strong> (una medida de la volatilidad reciente). Así el riesgo siempre está adaptado a cómo de movido está el mercado ese día.</p>',
       claves: [
         'Stop loss — orden que cierra con pérdida controlada si el mercado va en contra',
         'Stop estructural — colocado en el extremo del sweep + colchón (StopBufferTicks = 2)',
-        'MinStopPoints = 4 / MaxStopPoints = 10 — el stop debe estar en ese rango de puntos',
+        'MinStopPoints = 2,5 / MaxStopPoints = 10 — el stop debe estar en ese rango de puntos',
         'ATR — medida de volatilidad reciente; el stop no puede superar 2× ATR'
       ],
       quiz: {
