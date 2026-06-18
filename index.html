@@ -945,8 +945,30 @@
       <h1 class="mb8">Aprendizaje</h1>
       <p>La estrategia del bot explicada paso a paso: qué es MES, order flow, sweep + reclaim, delta y los niveles que opera.</p>
     </div>
-    <div class="card">
-      <p style="text-align:center;color:var(--text-mut,#8a8a8a);padding:28px 12px;">📚 Contenido en construcción — <strong>Fase 4</strong>.</p>
+
+    <!-- Sub-navegación interna -->
+    <div class="apr-subtabs" role="tablist">
+      <button class="apr-subtab active" data-subtab="lecciones" role="tab" aria-selected="true"
+              onclick="aprShowTab('lecciones')">📚 Lecciones</button>
+      <button class="apr-subtab" data-subtab="simulador" role="tab" aria-selected="false"
+              onclick="aprShowTab('simulador')">🎯 Simulador</button>
+    </div>
+
+    <!-- Sub-vista: LECCIONES -->
+    <div id="apr-lecciones" class="apr-subview active">
+      <div class="apr-prog-card">
+        <div class="apr-prog-row">
+          <span class="apr-prog-label">Progreso de lecciones</span>
+          <span class="apr-prog-count" id="apr-prog-count">0 / 0</span>
+        </div>
+        <div class="apr-prog-bar"><div class="apr-prog-fill" id="apr-prog-fill" style="width:0%"></div></div>
+      </div>
+      <div id="apr-lecciones-list"></div>
+    </div>
+
+    <!-- Sub-vista: SIMULADOR -->
+    <div id="apr-simulador" class="apr-subview">
+      <div id="apr-sim-host"></div>
     </div>
   </section>
 
@@ -974,6 +996,93 @@
 
 </main>
 <style>
+  /* ── APRENDIZAJE: sub-tabs + extras ──────────────────────── */
+  .apr-subtabs {
+    display: flex; gap: 8px; margin-bottom: 24px;
+    background: var(--bg-card2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 5px;
+  }
+  .apr-subtab {
+    flex: 1; background: none; border: none; color: var(--text-sec);
+    font-size: 0.88rem; font-weight: 600; padding: 11px 14px;
+    border-radius: 8px; cursor: pointer; transition: color 0.2s, background 0.2s;
+    letter-spacing: 0.01em;
+  }
+  .apr-subtab:hover { color: var(--text-pri); }
+  .apr-subtab.active {
+    color: white;
+    background: linear-gradient(135deg, var(--acc-blue), #2563eb);
+    box-shadow: 0 2px 12px rgba(59,130,246,0.35);
+  }
+  .apr-subview { display: none; animation: fadeIn 0.25s ease; }
+  .apr-subview.active { display: block; }
+
+  /* Progress card (lecciones) */
+  .apr-prog-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px; margin-bottom: 18px;
+  }
+  .apr-prog-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .apr-prog-label { font-size: 0.82rem; color: var(--text-sec); font-weight: 600; }
+  .apr-prog-count { font-size: 0.82rem; color: var(--acc-green); font-weight: 700; }
+  .apr-prog-bar { height: 5px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .apr-prog-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--acc-blue), var(--acc-green)); transition: width 0.6s ease; }
+
+  /* Phase group header */
+  .apr-phase-group { margin-bottom: 26px; }
+  .apr-phase-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .apr-phase-badge {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: 800; color: white;
+    background: linear-gradient(135deg, var(--acc-blue), #2563eb);
+    box-shadow: 0 2px 10px rgba(59,130,246,0.3);
+  }
+  .apr-phase-title { font-size: 1rem; font-weight: 700; color: var(--text-pri); }
+  .apr-phase-desc  { font-size: 0.8rem; color: var(--text-mut); width: 100%; margin-left: 38px; margin-top: -4px; }
+
+  /* Claves list reuse key-terms styling */
+  .apr-claves { margin: 16px 0 4px; }
+
+  /* Simulador extras */
+  .apr-sim-scorebar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .apr-sim-stat {
+    flex: 1; min-width: 90px; text-align: center;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px;
+  }
+  .apr-sim-stat-num { font-size: 1.5rem; font-weight: 800; line-height: 1; }
+  .apr-sim-stat-lbl { font-size: 0.68rem; color: var(--text-mut); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; margin-top: 5px; }
+  .apr-sim-concepto {
+    display: inline-block; margin-top: 10px; font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    background: rgba(139,92,246,0.12); color: var(--acc-purple);
+    border: 1px solid rgba(139,92,246,0.3); padding: 3px 11px; border-radius: 999px;
+  }
+  .apr-sim-next {
+    display: block; width: 100%; margin-top: 16px; padding: 13px;
+    background: linear-gradient(135deg, var(--acc-blue), #2563eb); color: white;
+    border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; box-shadow: 0 3px 14px rgba(59,130,246,0.3);
+  }
+  .apr-sim-next:hover { transform: translateY(-1px); box-shadow: 0 5px 20px rgba(59,130,246,0.45); }
+  .apr-sim-restart {
+    display: block; margin: 18px auto 0; padding: 10px 24px;
+    background: none; border: 1px solid var(--border-hov); color: var(--text-sec);
+    border-radius: 10px; font-size: 0.88rem; cursor: pointer; transition: all 0.15s;
+  }
+  .apr-sim-restart:hover { border-color: var(--acc-blue); color: var(--text-pri); }
+
+  .apr-empty {
+    text-align: center; color: var(--text-mut);
+    padding: 36px 16px; font-size: 0.9rem;
+  }
+
+  @media (max-width: 640px) {
+    .apr-subtab { font-size: 0.8rem; padding: 10px 8px; }
+    .apr-phase-desc { margin-left: 0; }
+  }
+
   /* ── Floating button ─────────────────────────────────────── */
   #chat-fab {
     position: fixed; bottom: 24px; right: 24px; z-index: 1000;
@@ -1239,8 +1348,447 @@ function showSection(name) {
   const btn = document.querySelector('.nav-btn[data-sec="' + name + '"]');
   if (btn) btn.classList.add('active');
   window.scrollTo(0, 0);
+  // Render perezoso de la sección Aprendizaje al entrar
+  if (name === 'aprendizaje' && typeof aprRender === 'function') aprRender();
 }
 document.addEventListener('DOMContentLoaded', () => showSection('home'));
+
+/* ════════════════════════════════════════════════════════════════════
+   APRENDIZAJE — Lecciones (acordeón + quiz + progreso) y Simulador
+   Consume window.APRENDIZAJE = { fases, lecciones, setups }.
+   Todo defensivo: si falta el dato, muestra "Contenido en preparación".
+   ════════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  const LS_DONE  = 'nucleo_aprendizaje_done';   // { [leccionId]: true }
+  const LS_SIM   = 'nucleo_aprendizaje_sim';    // { aciertos, total, idx, answered:{} }
+
+  // ── localStorage helpers (a prueba de modo privado) ──────────────────
+  function lsGet(key, fallback) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+    catch (e) { return fallback; }
+  }
+  function lsSet(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* ignora */ }
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // ── Datos seguros ────────────────────────────────────────────────────
+  function getData() {
+    const d = (window.APRENDIZAJE && typeof window.APRENDIZAJE === 'object') ? window.APRENDIZAJE : {};
+    return {
+      fases:     Array.isArray(d.fases)     ? d.fases     : [],
+      lecciones: Array.isArray(d.lecciones) ? d.lecciones : [],
+      setups:    Array.isArray(d.setups)    ? d.setups    : [],
+    };
+  }
+
+  // Dibuja un chart de tutorial dentro de un host (crea el canvas con tamaño).
+  function paintChart(hostEl, tipo) {
+    if (!hostEl || !tipo) return;
+    if (!window.ChartEngine || typeof window.ChartEngine.drawTutorialChart !== 'function') return;
+    // ancho real del contenedor (mínimo razonable para móvil)
+    const cssW = Math.max(260, Math.floor(hostEl.clientWidth || hostEl.offsetWidth || 320));
+    const cssH = Math.round(cssW * 0.6);
+    const dpr  = Math.min(window.devicePixelRatio || 1, 2);
+    const canvas = document.createElement('canvas');
+    canvas.width  = Math.floor(cssW * dpr);
+    canvas.height = Math.floor(cssH * dpr);
+    canvas.style.width  = '100%';
+    canvas.style.height = 'auto';
+    hostEl.innerHTML = '';
+    hostEl.appendChild(canvas);
+    try { window.ChartEngine.drawTutorialChart(canvas, tipo); }
+    catch (e) { hostEl.innerHTML = '<p class="apr-empty">No se pudo dibujar el diagrama.</p>'; }
+  }
+
+  // ════════════════════════════ LECCIONES ════════════════════════════
+
+  function renderLecciones() {
+    const { fases, lecciones } = getData();
+    const list = document.getElementById('apr-lecciones-list');
+    if (!list) return;
+
+    if (lecciones.length === 0) {
+      list.innerHTML = '<div class="card"><p class="apr-empty">📚 Contenido en preparación.</p></div>';
+      updateProgress();
+      return;
+    }
+
+    const done = lsGet(LS_DONE, {});
+
+    // Agrupa lecciones por fase, en el orden de `fases` (y al final, fases huérfanas)
+    const orderedFaseIds = fases.map(f => f && f.id).filter(Boolean);
+    const grupos = new Map();
+    lecciones.forEach(lec => {
+      const fid = (lec && lec.fase != null) ? lec.fase : '_';
+      if (!grupos.has(fid)) grupos.set(fid, []);
+      grupos.get(fid).push(lec);
+    });
+    const faseIds = [];
+    orderedFaseIds.forEach(id => { if (grupos.has(id)) faseIds.push(id); });
+    grupos.forEach((_, id) => { if (!faseIds.includes(id)) faseIds.push(id); });
+
+    let html = '';
+    let globalIdx = 0;
+
+    faseIds.forEach(fid => {
+      const fase = fases.find(f => f && f.id === fid);
+      const titulo = fase ? esc(fase.titulo || ('Fase ' + fid)) : (fid === '_' ? 'Otras lecciones' : esc('Fase ' + fid));
+      const desc   = fase && fase.descripcion ? esc(fase.descripcion) : '';
+      html += '<div class="apr-phase-group">';
+      html += '<div class="apr-phase-head">'
+            + '<span class="apr-phase-badge">' + esc(fid === '_' ? '·' : fid) + '</span>'
+            + '<span class="apr-phase-title">' + titulo + '</span>'
+            + (desc ? '<span class="apr-phase-desc">' + desc + '</span>' : '')
+            + '</div>';
+
+      grupos.get(fid).forEach(lec => {
+        globalIdx++;
+        html += leccionCard(lec, globalIdx, !!done[lec && lec.id]);
+      });
+
+      html += '</div>';
+    });
+
+    list.innerHTML = html;
+    updateProgress();
+  }
+
+  function leccionCard(lec, num, isDone) {
+    const id = lec && lec.id != null ? String(lec.id) : ('lec' + num);
+    const titulo = esc(lec && lec.titulo || 'Lección');
+    const sub    = lec && lec.subtitulo ? esc(lec.subtitulo) : '';
+    const dur    = lec && lec.duracion  ? esc(lec.duracion)  : '';
+
+    return ''
+      + '<div class="lesson-card" data-lec="' + esc(id) + '" data-num="' + num + '">'
+      +   '<div class="lesson-card-header" onclick="aprToggleLeccion(this)">'
+      +     '<div class="lesson-num ' + (isDone ? 'done' : '') + '">' + (isDone ? '✓' : num) + '</div>'
+      +     '<div class="lesson-info">'
+      +       '<div class="lesson-title">' + titulo + '</div>'
+      +       (sub ? '<div class="lesson-subtitle">' + sub + '</div>' : '')
+      +     '</div>'
+      +     '<div class="lesson-meta">'
+      +       (isDone ? '<span class="lesson-done-badge">Hecha</span>' : '')
+      +       (dur ? '<span class="lesson-dur">' + dur + '</span>' : '')
+      +       '<span class="lesson-chevron">›</span>'
+      +     '</div>'
+      +   '</div>'
+      +   '<div class="lesson-card-body"></div>'
+      + '</div>';
+  }
+
+  // Construye el cuerpo (perezoso): contenido + chart + claves + quiz + botón
+  function buildLeccionBody(card, lec) {
+    const bodyEl = card.querySelector('.lesson-card-body');
+    if (!bodyEl || bodyEl.dataset.built === '1') return;
+
+    const done = lsGet(LS_DONE, {});
+    const id = lec && lec.id != null ? String(lec.id) : '';
+    const isDone = !!done[id];
+
+    let html = '<div class="lesson-content">' + (lec && lec.contenido ? lec.contenido : '') + '</div>';
+
+    if (lec && lec.chart) html += '<div class="apr-chart-host"></div>';
+
+    if (lec && Array.isArray(lec.claves) && lec.claves.length) {
+      html += '<div class="key-terms-box apr-claves">';
+      lec.claves.forEach(k => {
+        const str = String(k || '');
+        const dash = str.indexOf('—') >= 0 ? '—' : (str.indexOf(' - ') >= 0 ? ' - ' : null);
+        if (dash) {
+          const i = str.indexOf(dash);
+          const term = str.slice(0, i).trim();
+          const def  = str.slice(i + dash.length).trim();
+          html += '<div class="key-term"><strong>' + esc(term) + '</strong> — ' + esc(def) + '</div>';
+        } else {
+          html += '<div class="key-term">' + esc(str) + '</div>';
+        }
+      });
+      html += '</div>';
+    }
+
+    if (lec && lec.quiz && typeof lec.quiz === 'object' && Array.isArray(lec.quiz.opciones)) {
+      html += buildQuizHtml(lec.quiz);
+    }
+
+    html += '<button class="btn-complete ' + (isDone ? 'done' : '') + '" onclick="aprToggleDone(this)" data-lec="' + esc(id) + '">'
+          + (isDone ? '✓ Completada' : 'Marcar como completada') + '</button>';
+
+    bodyEl.innerHTML = html;
+    bodyEl.dataset.built = '1';
+
+    // Pinta el chart ahora que el host está en el DOM con tamaño
+    if (lec && lec.chart) {
+      const host = bodyEl.querySelector('.apr-chart-host');
+      paintChart(host, lec.chart);
+    }
+  }
+
+  function buildQuizHtml(quiz) {
+    let h = '<div class="lesson-quiz" data-correcta="' + Number(quiz.correcta) + '">';
+    h += '<div class="quiz-q">' + esc(quiz.pregunta || '') + '</div>';
+    quiz.opciones.forEach((op, i) => {
+      h += '<button class="quiz-option" onclick="aprAnswerQuiz(this,' + i + ')">' + esc(op) + '</button>';
+    });
+    h += '<div class="quiz-explanation">' + esc(quiz.explicacion || '') + '</div>';
+    h += '</div>';
+    return h;
+  }
+
+  function updateProgress() {
+    const { lecciones } = getData();
+    const done = lsGet(LS_DONE, {});
+    const total = lecciones.length;
+    const hechas = lecciones.filter(l => l && done[String(l.id)]).length;
+    const pct = total ? Math.round((hechas / total) * 100) : 0;
+    const countEl = document.getElementById('apr-prog-count');
+    const fillEl  = document.getElementById('apr-prog-fill');
+    if (countEl) countEl.textContent = hechas + ' / ' + total;
+    if (fillEl)  fillEl.style.width = pct + '%';
+  }
+
+  // ── Handlers globales (lecciones) ────────────────────────────────────
+  window.aprToggleLeccion = function (headerEl) {
+    const card = headerEl.closest('.lesson-card');
+    if (!card) return;
+    const body = card.querySelector('.lesson-card-body');
+    const chev = card.querySelector('.lesson-chevron');
+    const open = body.classList.contains('open');
+    if (open) {
+      body.classList.remove('open');
+      if (chev) chev.classList.remove('open');
+    } else {
+      const { lecciones } = getData();
+      const lec = lecciones.find(l => l && String(l.id) === card.dataset.lec);
+      buildLeccionBody(card, lec || {});
+      body.classList.add('open');
+      if (chev) chev.classList.add('open');
+    }
+  };
+
+  window.aprAnswerQuiz = function (btn, idx) {
+    const quiz = btn.closest('.lesson-quiz');
+    if (!quiz || quiz.dataset.answered === '1') return;
+    quiz.dataset.answered = '1';
+    const correcta = Number(quiz.dataset.correcta);
+    const opciones = quiz.querySelectorAll('.quiz-option');
+    opciones.forEach((o, i) => {
+      o.style.cursor = 'default';
+      if (i === correcta) o.classList.add('correct');
+      else if (i === idx) o.classList.add('wrong');
+    });
+    const expl = quiz.querySelector('.quiz-explanation');
+    if (expl) expl.style.display = 'block';
+  };
+
+  window.aprToggleDone = function (btn) {
+    const id = btn.dataset.lec;
+    if (!id) return;
+    const done = lsGet(LS_DONE, {});
+    const card = btn.closest('.lesson-card');
+    if (done[id]) {
+      delete done[id];
+      btn.classList.remove('done');
+      btn.textContent = 'Marcar como completada';
+    } else {
+      done[id] = true;
+      btn.classList.add('done');
+      btn.textContent = '✓ Completada';
+    }
+    lsSet(LS_DONE, done);
+    // Refresca el indicador de la cabecera de la tarjeta
+    if (card) {
+      const numEl   = card.querySelector('.lesson-num');
+      const metaEl  = card.querySelector('.lesson-meta');
+      const isDone  = !!done[id];
+      if (numEl) {
+        numEl.classList.toggle('done', isDone);
+        // recupera el número original (posición) si se desmarca
+        if (isDone) numEl.textContent = '✓';
+        else        numEl.textContent = card.dataset.num || '•';
+      }
+      if (metaEl) {
+        let badge = metaEl.querySelector('.lesson-done-badge');
+        if (isDone && !badge) {
+          badge = document.createElement('span');
+          badge.className = 'lesson-done-badge';
+          badge.textContent = 'Hecha';
+          metaEl.insertBefore(badge, metaEl.firstChild);
+        } else if (!isDone && badge) {
+          badge.remove();
+        }
+      }
+    }
+    updateProgress();
+  };
+
+  // ════════════════════════════ SIMULADOR ════════════════════════════
+
+  function renderSimulador() {
+    const { setups } = getData();
+    const host = document.getElementById('apr-sim-host');
+    if (!host) return;
+
+    if (setups.length === 0) {
+      host.innerHTML = '<div class="card"><p class="apr-empty">🎯 Contenido en preparación.</p></div>';
+      return;
+    }
+
+    const state = loadSimState(setups.length);
+    drawSimCard(host, setups, state);
+  }
+
+  function loadSimState(total) {
+    let st = lsGet(LS_SIM, null);
+    if (!st || typeof st !== 'object') st = { aciertos: 0, total: 0, idx: 0, answered: {} };
+    if (!st.answered || typeof st.answered !== 'object') st.answered = {};
+    if (typeof st.idx !== 'number' || st.idx < 0) st.idx = 0;
+    if (st.idx >= total) st.idx = total - 1;
+    return st;
+  }
+
+  function drawSimCard(host, setups, state) {
+    const total = setups.length;
+    const idx = Math.min(state.idx, total - 1);
+    const setup = setups[idx] || {};
+    const answered = state.answered[setup.id != null ? setup.id : idx];
+    const pct = total ? Math.round((state.total / total) * 100) : 0;
+
+    let html = '';
+
+    // Marcador
+    html += '<div class="apr-sim-scorebar">'
+          + '<div class="apr-sim-stat"><div class="apr-sim-stat-num text-green">' + state.aciertos + '</div><div class="apr-sim-stat-lbl">Aciertos</div></div>'
+          + '<div class="apr-sim-stat"><div class="apr-sim-stat-num text-blue">' + state.total + '</div><div class="apr-sim-stat-lbl">Respondidos</div></div>'
+          + '<div class="apr-sim-stat"><div class="apr-sim-stat-num">' + (state.total ? Math.round(state.aciertos / state.total * 100) : 0) + '%</div><div class="apr-sim-stat-lbl">Acierto</div></div>'
+          + '</div>';
+
+    // Barra de progreso del recorrido
+    html += '<div class="progress-wrap">'
+          + '<div class="progress-row"><span class="text-sec" style="font-size:0.82rem;">Caso ' + (idx + 1) + ' de ' + total + '</span></div>'
+          + '<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:' + pct + '%"></div></div>'
+          + '</div>';
+
+    // Gráfico
+    html += '<div class="chart-panel"><div class="chart-panel-header">Reconoce el setup</div><div class="apr-chart-host" style="padding:12px;"></div></div>';
+
+    // Pregunta + botones / verdicto
+    html += '<div class="quiz-card" style="margin-top:14px;">';
+    html += '<div class="quiz-question">' + esc(setup.pregunta || '¿Entrarías en esta operación?') + '</div>';
+
+    if (!answered) {
+      html += '<div class="quiz-btns">'
+            + '<button class="btn-yes" onclick="aprSimAnswer(true)">SÍ entrar</button>'
+            + '<button class="btn-no" onclick="aprSimAnswer(false)">NO entrar</button>'
+            + '</div>';
+    } else {
+      html += buildVerdict(setup, answered.respuesta);
+      html += '<button class="apr-sim-next" onclick="aprSimNext()">' + (idx + 1 < total ? 'Siguiente →' : 'Reiniciar recorrido') + '</button>';
+    }
+    html += '</div>';
+
+    html += '<button class="apr-sim-restart" onclick="aprSimRestart()">↺ Reiniciar marcador</button>';
+
+    host.innerHTML = html;
+
+    // Pinta el chart (host ya está en el DOM)
+    const chartHost = host.querySelector('.apr-chart-host');
+    paintChart(chartHost, setup.chart);
+  }
+
+  function buildVerdict(setup, respuesta) {
+    const acerto = (respuesta === !!setup.correcta);
+    const cls = acerto ? 'correct' : 'incorrect';
+    let h = '<div class="verdict-box ' + cls + '">';
+    h += '<span class="verdict-badge ' + cls + '">' + (acerto ? '✓ Correcto' : '✗ Incorrecto') + '</span>';
+    h += '<div class="verdict-text">' + (setup.correcta ? 'Setup válido: tocaba <strong>entrar</strong>.' : 'Setup inválido: tocaba <strong>no entrar</strong>.') + '</div>';
+    if (setup.explicacion) h += '<div class="verdict-explanation">' + esc(setup.explicacion) + '</div>';
+    if (setup.concepto) h += '<span class="apr-sim-concepto">' + esc(setup.concepto) + '</span>';
+    h += '</div>';
+    return h;
+  }
+
+  // ── Handlers globales (simulador) ────────────────────────────────────
+  window.aprSimAnswer = function (respuesta) {
+    const { setups } = getData();
+    if (setups.length === 0) return;
+    const state = loadSimState(setups.length);
+    const idx = Math.min(state.idx, setups.length - 1);
+    const setup = setups[idx] || {};
+    const key = setup.id != null ? setup.id : idx;
+    if (state.answered[key]) return; // ya respondido
+    const acerto = (respuesta === !!setup.correcta);
+    state.answered[key] = { respuesta: respuesta };
+    state.total += 1;
+    if (acerto) state.aciertos += 1;
+    lsSet(LS_SIM, state);
+    const host = document.getElementById('apr-sim-host');
+    drawSimCard(host, setups, state);
+  };
+
+  window.aprSimNext = function () {
+    const { setups } = getData();
+    if (setups.length === 0) return;
+    const state = loadSimState(setups.length);
+    if (state.idx + 1 < setups.length) {
+      state.idx += 1;
+    } else {
+      // fin del recorrido → reinicia el recorrido (mantiene nada: empezar limpio)
+      state.idx = 0;
+      state.answered = {};
+      state.aciertos = 0;
+      state.total = 0;
+    }
+    lsSet(LS_SIM, state);
+    const host = document.getElementById('apr-sim-host');
+    drawSimCard(host, setups, state);
+  };
+
+  window.aprSimRestart = function () {
+    const { setups } = getData();
+    const state = { aciertos: 0, total: 0, idx: 0, answered: {} };
+    lsSet(LS_SIM, state);
+    const host = document.getElementById('apr-sim-host');
+    if (host) drawSimCard(host, setups, state);
+  };
+
+  // ════════════════════════════ SUB-TABS / RENDER ════════════════════
+  window.aprShowTab = function (tab) {
+    document.querySelectorAll('.apr-subtab').forEach(b => {
+      const on = b.dataset.subtab === tab;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    document.querySelectorAll('.apr-subview').forEach(v => v.classList.remove('active'));
+    const view = document.getElementById('apr-' + tab);
+    if (view) view.classList.add('active');
+    if (tab === 'simulador') renderSimulador();
+  };
+
+  let aprRendered = false;
+  window.aprRender = function () {
+    // Render perezoso; se reconstruye siempre por si APRENDIZAJE cargó tarde
+    renderLecciones();
+    // sólo (re)dibuja simulador si su pestaña está activa
+    const simView = document.getElementById('apr-simulador');
+    if (simView && simView.classList.contains('active')) renderSimulador();
+    aprRendered = true;
+  };
+
+  // Si la sección ya está activa al cargar (p.ej. deep-link futuro), renderiza.
+  document.addEventListener('DOMContentLoaded', function () {
+    const sec = document.getElementById('aprendizaje-section');
+    if (sec && sec.classList.contains('active')) window.aprRender();
+  });
+})();
 </script>
 </body>
 </html>
