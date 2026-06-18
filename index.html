@@ -946,30 +946,14 @@
       <p>La estrategia del bot explicada paso a paso: qué es MES, order flow, sweep + reclaim, delta y los niveles que opera.</p>
     </div>
 
-    <!-- Sub-navegación interna -->
-    <div class="apr-subtabs" role="tablist">
-      <button class="apr-subtab active" data-subtab="lecciones" role="tab" aria-selected="true"
-              onclick="aprShowTab('lecciones')">📚 Lecciones</button>
-      <button class="apr-subtab" data-subtab="simulador" role="tab" aria-selected="false"
-              onclick="aprShowTab('simulador')">🎯 Simulador</button>
-    </div>
-
-    <!-- Sub-vista: LECCIONES -->
-    <div id="apr-lecciones" class="apr-subview active">
-      <div class="apr-prog-card">
-        <div class="apr-prog-row">
-          <span class="apr-prog-label">Progreso de lecciones</span>
-          <span class="apr-prog-count" id="apr-prog-count">0 / 0</span>
-        </div>
-        <div class="apr-prog-bar"><div class="apr-prog-fill" id="apr-prog-fill" style="width:0%"></div></div>
+    <div class="apr-prog-card">
+      <div class="apr-prog-row">
+        <span class="apr-prog-label">Progreso de lecciones</span>
+        <span class="apr-prog-count" id="apr-prog-count">0 / 0</span>
       </div>
-      <div id="apr-lecciones-list"></div>
+      <div class="apr-prog-bar"><div class="apr-prog-fill" id="apr-prog-fill" style="width:0%"></div></div>
     </div>
-
-    <!-- Sub-vista: SIMULADOR -->
-    <div id="apr-simulador" class="apr-subview">
-      <div id="apr-sim-host"></div>
-    </div>
+    <div id="apr-lecciones-list"></div>
   </section>
 
   <!-- ══════════════════════════ REGISTRO ══════════════════════════ -->
@@ -997,26 +981,6 @@
 </main>
 <style>
   /* ── APRENDIZAJE: sub-tabs + extras ──────────────────────── */
-  .apr-subtabs {
-    display: flex; gap: 8px; margin-bottom: 24px;
-    background: var(--bg-card2); border: 1px solid var(--border);
-    border-radius: 12px; padding: 5px;
-  }
-  .apr-subtab {
-    flex: 1; background: none; border: none; color: var(--text-sec);
-    font-size: 0.88rem; font-weight: 600; padding: 11px 14px;
-    border-radius: 8px; cursor: pointer; transition: color 0.2s, background 0.2s;
-    letter-spacing: 0.01em;
-  }
-  .apr-subtab:hover { color: var(--text-pri); }
-  .apr-subtab.active {
-    color: white;
-    background: linear-gradient(135deg, var(--acc-blue), #2563eb);
-    box-shadow: 0 2px 12px rgba(59,130,246,0.35);
-  }
-  .apr-subview { display: none; animation: fadeIn 0.25s ease; }
-  .apr-subview.active { display: block; }
-
   /* Progress card (lecciones) */
   .apr-prog-card {
     background: var(--bg-card); border: 1px solid var(--border);
@@ -1044,42 +1008,12 @@
   /* Claves list reuse key-terms styling */
   .apr-claves { margin: 16px 0 4px; }
 
-  /* Simulador extras */
-  .apr-sim-scorebar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-  .apr-sim-stat {
-    flex: 1; min-width: 90px; text-align: center;
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 12px; padding: 12px;
-  }
-  .apr-sim-stat-num { font-size: 1.5rem; font-weight: 800; line-height: 1; }
-  .apr-sim-stat-lbl { font-size: 0.68rem; color: var(--text-mut); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; margin-top: 5px; }
-  .apr-sim-concepto {
-    display: inline-block; margin-top: 10px; font-size: 0.72rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.05em;
-    background: rgba(139,92,246,0.12); color: var(--acc-purple);
-    border: 1px solid rgba(139,92,246,0.3); padding: 3px 11px; border-radius: 999px;
-  }
-  .apr-sim-next {
-    display: block; width: 100%; margin-top: 16px; padding: 13px;
-    background: linear-gradient(135deg, var(--acc-blue), #2563eb); color: white;
-    border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600;
-    cursor: pointer; transition: all 0.2s; box-shadow: 0 3px 14px rgba(59,130,246,0.3);
-  }
-  .apr-sim-next:hover { transform: translateY(-1px); box-shadow: 0 5px 20px rgba(59,130,246,0.45); }
-  .apr-sim-restart {
-    display: block; margin: 18px auto 0; padding: 10px 24px;
-    background: none; border: 1px solid var(--border-hov); color: var(--text-sec);
-    border-radius: 10px; font-size: 0.88rem; cursor: pointer; transition: all 0.15s;
-  }
-  .apr-sim-restart:hover { border-color: var(--acc-blue); color: var(--text-pri); }
-
   .apr-empty {
     text-align: center; color: var(--text-mut);
     padding: 36px 16px; font-size: 0.9rem;
   }
 
   @media (max-width: 640px) {
-    .apr-subtab { font-size: 0.8rem; padding: 10px 8px; }
     .apr-phase-desc { margin-left: 0; }
   }
 
@@ -1354,15 +1288,14 @@ function showSection(name) {
 document.addEventListener('DOMContentLoaded', () => showSection('home'));
 
 /* ════════════════════════════════════════════════════════════════════
-   APRENDIZAJE — Lecciones (acordeón + quiz + progreso) y Simulador
-   Consume window.APRENDIZAJE = { fases, lecciones, setups }.
+   APRENDIZAJE — Lecciones (acordeón + quiz + progreso)
+   Consume window.APRENDIZAJE = { fases, lecciones }.
    Todo defensivo: si falta el dato, muestra "Contenido en preparación".
    ════════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
 
   const LS_DONE  = 'nucleo_aprendizaje_done';   // { [leccionId]: true }
-  const LS_SIM   = 'nucleo_aprendizaje_sim';    // { aciertos, total, idx, answered:{} }
 
   // ── localStorage helpers (a prueba de modo privado) ──────────────────
   function lsGet(key, fallback) {
@@ -1385,7 +1318,6 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
     return {
       fases:     Array.isArray(d.fases)     ? d.fases     : [],
       lecciones: Array.isArray(d.lecciones) ? d.lecciones : [],
-      setups:    Array.isArray(d.setups)    ? d.setups    : [],
     };
   }
 
@@ -1630,157 +1562,9 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
     updateProgress();
   };
 
-  // ════════════════════════════ SIMULADOR ════════════════════════════
-
-  function renderSimulador() {
-    const { setups } = getData();
-    const host = document.getElementById('apr-sim-host');
-    if (!host) return;
-
-    if (setups.length === 0) {
-      host.innerHTML = '<div class="card"><p class="apr-empty">🎯 Contenido en preparación.</p></div>';
-      return;
-    }
-
-    const state = loadSimState(setups.length);
-    drawSimCard(host, setups, state);
-  }
-
-  function loadSimState(total) {
-    let st = lsGet(LS_SIM, null);
-    if (!st || typeof st !== 'object') st = { aciertos: 0, total: 0, idx: 0, answered: {} };
-    if (!st.answered || typeof st.answered !== 'object') st.answered = {};
-    if (typeof st.idx !== 'number' || st.idx < 0) st.idx = 0;
-    if (st.idx >= total) st.idx = total - 1;
-    return st;
-  }
-
-  function drawSimCard(host, setups, state) {
-    const total = setups.length;
-    const idx = Math.min(state.idx, total - 1);
-    const setup = setups[idx] || {};
-    const answered = state.answered[setup.id != null ? setup.id : idx];
-    const pct = total ? Math.round((state.total / total) * 100) : 0;
-
-    let html = '';
-
-    // Marcador
-    html += '<div class="apr-sim-scorebar">'
-          + '<div class="apr-sim-stat"><div class="apr-sim-stat-num text-green">' + state.aciertos + '</div><div class="apr-sim-stat-lbl">Aciertos</div></div>'
-          + '<div class="apr-sim-stat"><div class="apr-sim-stat-num text-blue">' + state.total + '</div><div class="apr-sim-stat-lbl">Respondidos</div></div>'
-          + '<div class="apr-sim-stat"><div class="apr-sim-stat-num">' + (state.total ? Math.round(state.aciertos / state.total * 100) : 0) + '%</div><div class="apr-sim-stat-lbl">Acierto</div></div>'
-          + '</div>';
-
-    // Barra de progreso del recorrido
-    html += '<div class="progress-wrap">'
-          + '<div class="progress-row"><span class="text-sec" style="font-size:0.82rem;">Caso ' + (idx + 1) + ' de ' + total + '</span></div>'
-          + '<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:' + pct + '%"></div></div>'
-          + '</div>';
-
-    // Gráfico
-    html += '<div class="chart-panel"><div class="chart-panel-header">Reconoce el setup</div><div class="apr-chart-host" style="padding:12px;"></div></div>';
-
-    // Pregunta + botones / verdicto
-    html += '<div class="quiz-card" style="margin-top:14px;">';
-    html += '<div class="quiz-question">' + esc(setup.pregunta || '¿Entrarías en esta operación?') + '</div>';
-
-    if (!answered) {
-      html += '<div class="quiz-btns">'
-            + '<button class="btn-yes" onclick="aprSimAnswer(true)">SÍ entrar</button>'
-            + '<button class="btn-no" onclick="aprSimAnswer(false)">NO entrar</button>'
-            + '</div>';
-    } else {
-      html += buildVerdict(setup, answered.respuesta);
-      html += '<button class="apr-sim-next" onclick="aprSimNext()">' + (idx + 1 < total ? 'Siguiente →' : 'Reiniciar recorrido') + '</button>';
-    }
-    html += '</div>';
-
-    html += '<button class="apr-sim-restart" onclick="aprSimRestart()">↺ Reiniciar marcador</button>';
-
-    host.innerHTML = html;
-
-    // Pinta el chart (host ya está en el DOM)
-    const chartHost = host.querySelector('.apr-chart-host');
-    paintChart(chartHost, setup.chart);
-  }
-
-  function buildVerdict(setup, respuesta) {
-    const acerto = (respuesta === !!setup.correcta);
-    const cls = acerto ? 'correct' : 'incorrect';
-    let h = '<div class="verdict-box ' + cls + '">';
-    h += '<span class="verdict-badge ' + cls + '">' + (acerto ? '✓ Correcto' : '✗ Incorrecto') + '</span>';
-    h += '<div class="verdict-text">' + (setup.correcta ? 'Setup válido: tocaba <strong>entrar</strong>.' : 'Setup inválido: tocaba <strong>no entrar</strong>.') + '</div>';
-    if (setup.explicacion) h += '<div class="verdict-explanation">' + esc(setup.explicacion) + '</div>';
-    if (setup.concepto) h += '<span class="apr-sim-concepto">' + esc(setup.concepto) + '</span>';
-    h += '</div>';
-    return h;
-  }
-
-  // ── Handlers globales (simulador) ────────────────────────────────────
-  window.aprSimAnswer = function (respuesta) {
-    const { setups } = getData();
-    if (setups.length === 0) return;
-    const state = loadSimState(setups.length);
-    const idx = Math.min(state.idx, setups.length - 1);
-    const setup = setups[idx] || {};
-    const key = setup.id != null ? setup.id : idx;
-    if (state.answered[key]) return; // ya respondido
-    const acerto = (respuesta === !!setup.correcta);
-    state.answered[key] = { respuesta: respuesta };
-    state.total += 1;
-    if (acerto) state.aciertos += 1;
-    lsSet(LS_SIM, state);
-    const host = document.getElementById('apr-sim-host');
-    drawSimCard(host, setups, state);
-  };
-
-  window.aprSimNext = function () {
-    const { setups } = getData();
-    if (setups.length === 0) return;
-    const state = loadSimState(setups.length);
-    if (state.idx + 1 < setups.length) {
-      state.idx += 1;
-    } else {
-      // fin del recorrido → reinicia el recorrido (mantiene nada: empezar limpio)
-      state.idx = 0;
-      state.answered = {};
-      state.aciertos = 0;
-      state.total = 0;
-    }
-    lsSet(LS_SIM, state);
-    const host = document.getElementById('apr-sim-host');
-    drawSimCard(host, setups, state);
-  };
-
-  window.aprSimRestart = function () {
-    const { setups } = getData();
-    const state = { aciertos: 0, total: 0, idx: 0, answered: {} };
-    lsSet(LS_SIM, state);
-    const host = document.getElementById('apr-sim-host');
-    if (host) drawSimCard(host, setups, state);
-  };
-
-  // ════════════════════════════ SUB-TABS / RENDER ════════════════════
-  window.aprShowTab = function (tab) {
-    document.querySelectorAll('.apr-subtab').forEach(b => {
-      const on = b.dataset.subtab === tab;
-      b.classList.toggle('active', on);
-      b.setAttribute('aria-selected', on ? 'true' : 'false');
-    });
-    document.querySelectorAll('.apr-subview').forEach(v => v.classList.remove('active'));
-    const view = document.getElementById('apr-' + tab);
-    if (view) view.classList.add('active');
-    if (tab === 'simulador') renderSimulador();
-  };
-
-  let aprRendered = false;
+  // ── Render de la sección Aprendizaje (sólo lecciones) ──
   window.aprRender = function () {
-    // Render perezoso; se reconstruye siempre por si APRENDIZAJE cargó tarde
     renderLecciones();
-    // sólo (re)dibuja simulador si su pestaña está activa
-    const simView = document.getElementById('apr-simulador');
-    if (simView && simView.classList.contains('active')) renderSimulador();
-    aprRendered = true;
   };
 
   // Si la sección ya está activa al cargar (p.ej. deep-link futuro), renderiza.

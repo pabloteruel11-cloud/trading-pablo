@@ -2,8 +2,8 @@
 // Convierte la estrategia real del bot BotflowSweep_v3 (order flow, sweep + reclaim sobre MES)
 // en lecciones digeribles para Pablo, que está aprendiendo.
 //
-// CONTRATO (no tocar la forma; otro agente construye el render contra esto):
-//   window.APRENDIZAJE = { fases:[...], lecciones:[...], setups:[...] }
+// CONTRATO (no tocar la forma; el render de index.html lo consume):
+//   window.APRENDIZAJE = { fases:[...], lecciones:[...] }
 //
 // Los números y parámetros citados reflejan los DEFAULTS del código vigente
 // (BotflowSweep_v3.cs, bloque State.SetDefaults). Si algo discrepaba con los planes,
@@ -594,82 +594,4 @@ window.APRENDIZAJE = {
       }
     }
   ],
-
-  // ---------------------------------------------------------------------------
-  // SETUPS — simulador de reconocimiento (mira el diagrama y decide)
-  // ---------------------------------------------------------------------------
-  setups: [
-    {
-      id: 's1',
-      chart: 'full_setup_long',
-      pregunta: '¿Es un sweep + reclaim válido para LONG?',
-      correcta: true,
-      explicacion: 'Sí: el precio perfora un soporte unos ticks con delta vendedor extremo y luego lo recupera (reclaim) rápido. La trampa de mínimos falló: entrada larga a favor del reclaim.',
-      concepto: 'sweep+reclaim'
-    },
-    {
-      id: 's2',
-      chart: 'full_setup_short',
-      pregunta: '¿Es un sweep + reclaim válido para SHORT?',
-      correcta: true,
-      explicacion: 'Sí: barrido de una resistencia con delta comprador extremo y regreso por debajo del nivel. Ruptura fallida al alza: entrada corta contra el barrido.',
-      concepto: 'sweep+reclaim'
-    },
-    {
-      id: 's3',
-      chart: 'eql_sweep',
-      pregunta: 'El precio barre el soporte pero NO vuelve por encima en 120 s. ¿Entra el bot LONG?',
-      correcta: false,
-      explicacion: 'No: hay penetración, pero sin reclaim a tiempo no hay trampa cerrada. Si pasa el plazo o el precio se aleja, el nivel se quema y el bot no opera.',
-      concepto: 'reclaim'
-    },
-    {
-      id: 's4',
-      chart: 'eqh_sweep',
-      pregunta: 'El precio supera la resistencia por 12 ticks de un golpe. ¿Es un sweep válido para SHORT?',
-      correcta: false,
-      explicacion: 'No: 12 ticks superan el máximo de 8 (MaxPenetrationTicks). Es una ruptura real, no una trampa. El bot quema el nivel y no fadea.',
-      concepto: 'penetración'
-    },
-    {
-      id: 's5',
-      chart: 'hh_hl',
-      pregunta: 'Tendencia alcista clara (máximos y mínimos crecientes). ¿Debería el bot fadear los nuevos máximos en corto?',
-      correcta: false,
-      explicacion: 'No: el filtro one-time-framing detecta la tendencia persistente y bloquea los cortos. Fadear una tendencia fuerte es justo donde el fader pierde.',
-      concepto: 'régimen / anti-trend'
-    },
-    {
-      id: 's6',
-      chart: 'lh_ll',
-      pregunta: 'Tendencia bajista violenta. ¿Es buen terreno para que el bot compre cada nuevo suelo?',
-      correcta: false,
-      explicacion: 'No: en tendencia bajista violenta el bot se aparta (anti-trend-day + OTF). Comprar cada suelo sería atrapar cuchillos cayendo; preservar capital es la jugada.',
-      concepto: 'régimen / anti-trend'
-    },
-    {
-      id: 's7',
-      chart: 'demand_zone',
-      pregunta: 'Hay un soporte claro (zona de demanda) con stops debajo. ¿Es candidato a un sweep LONG si lo perfora y revierte?',
-      correcta: true,
-      explicacion: 'Sí: un soporte con liquidez (stops) debajo es exactamente donde el bot busca un barrido. Si lo perfora 2-8 ticks con delta vendedor extremo y lo recupera, hay setup largo.',
-      concepto: 'niveles / liquidez'
-    },
-    {
-      id: 's8',
-      chart: 'supply_zone',
-      pregunta: 'Una resistencia (zona de oferta) marca el PDH. El precio la perfora solo 1 tick y vuelve. ¿Sweep válido para SHORT?',
-      correcta: false,
-      explicacion: 'No: 1 tick no llega al mínimo de 2 (MinPenetrationTicks). Es un roce, no un barrido. Sin penetración suficiente no hay trampa que fadear.',
-      concepto: 'penetración'
-    },
-    {
-      id: 's9',
-      chart: 'full_setup_long',
-      pregunta: 'Barrido de soporte y reclaim rápido, pero el delta del barrido fue normalito (no extremo). ¿Entra el bot LONG?',
-      correcta: false,
-      explicacion: 'No: sin delta en el percentil 90 (DeltaPercentile = 90), falta la prueba de capitulación. El bot exige agresión extrema; un delta normal no pasa el filtro.',
-      concepto: 'filtro de delta'
-    }
-  ]
 };
