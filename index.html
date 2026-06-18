@@ -962,9 +962,16 @@
       <h1 class="mb8">Registro</h1>
       <p>Tu diario: operaciones de trading (las señales llegan por Telegram), disciplina diaria y objetivos.</p>
     </div>
-    <div class="card">
-      <p style="text-align:center;color:var(--text-mut,#8a8a8a);padding:28px 12px;">📓 Contenido en construcción — <strong>Fase 5</strong>.</p>
+
+    <div class="reg-subtabs" role="tablist">
+      <button class="reg-subtab active" data-reg="trading"    onclick="regShowTab('trading')">💹 Trading</button>
+      <button class="reg-subtab"        data-reg="disciplina" onclick="regShowTab('disciplina')">✅ Disciplina</button>
+      <button class="reg-subtab"        data-reg="objetivos"  onclick="regShowTab('objetivos')">🎯 Objetivos</button>
     </div>
+
+    <div id="reg-trading"    class="reg-subview active"></div>
+    <div id="reg-disciplina" class="reg-subview"></div>
+    <div id="reg-objetivos"  class="reg-subview"></div>
   </section>
 
   <!-- ══════════════════════════ INVERSIÓN ══════════════════════════ -->
@@ -1266,6 +1273,58 @@
   }
   #chat-send-btn:hover { transform: scale(1.07); box-shadow: 0 3px 14px rgba(59,130,246,0.5); }
   #chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* ── REGISTRO ──────────────────────────────────────────────── */
+  .reg-subtabs { display: flex; gap: 8px; margin-bottom: 24px; background: var(--bg-card2); border: 1px solid var(--border); border-radius: 12px; padding: 5px; flex-wrap: wrap; }
+  .reg-subtab { flex: 1; min-width: 90px; background: none; border: none; color: var(--text-sec); font-size: 0.86rem; font-weight: 600; padding: 11px 12px; border-radius: 8px; cursor: pointer; transition: color 0.2s, background 0.2s; }
+  .reg-subtab:hover { color: var(--text-pri); }
+  .reg-subtab.active { color: white; background: linear-gradient(135deg, var(--acc-blue), #2563eb); box-shadow: 0 2px 12px rgba(59,130,246,0.35); }
+  .reg-subview { display: none; animation: fadeIn 0.25s ease; }
+  .reg-subview.active { display: block; }
+
+  .reg-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 4px 0 20px; }
+  .reg-btn { padding: 10px 18px; border-radius: 10px; font-size: 0.86rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border-hov); background: var(--bg-card2); color: var(--text-sec); transition: all 0.15s; }
+  .reg-btn:hover { border-color: var(--acc-blue); color: var(--text-pri); }
+  .reg-btn.primary { background: linear-gradient(135deg, var(--acc-blue), #2563eb); color: white; border-color: transparent; box-shadow: 0 3px 12px rgba(59,130,246,0.3); }
+  .reg-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(59,130,246,0.45); }
+
+  .reg-form { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 24px; }
+  .reg-form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .reg-field { display: flex; flex-direction: column; gap: 5px; }
+  .reg-field.full { grid-column: 1 / -1; }
+  .reg-field label { font-size: 0.7rem; font-weight: 700; color: var(--text-mut); text-transform: uppercase; letter-spacing: 0.06em; }
+  .reg-field input, .reg-field select, .reg-field textarea { background: var(--bg-card2); border: 1px solid var(--border); border-radius: 8px; color: var(--text-pri); font-size: 0.9rem; padding: 10px 12px; font-family: inherit; transition: border-color 0.15s; width: 100%; }
+  .reg-field input:focus, .reg-field select:focus, .reg-field textarea:focus { outline: none; border-color: var(--acc-blue); }
+  .reg-field textarea { min-height: 70px; resize: vertical; line-height: 1.6; }
+  .reg-form-foot { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; flex-wrap: wrap; }
+
+  .reg-trade-list { display: flex; flex-direction: column; gap: 10px; }
+  .reg-trade { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--border-hov); border-radius: 12px; padding: 14px 16px; }
+  .reg-trade.win { border-left-color: var(--acc-green); }
+  .reg-trade.loss { border-left-color: var(--acc-red); }
+  .reg-trade-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .reg-trade-instr { font-weight: 800; font-size: 0.92rem; color: var(--text-pri); }
+  .reg-trade-tag { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 5px; background: var(--bg-card2); border: 1px solid var(--border); color: var(--text-sec); }
+  .reg-trade-tag.long { color: var(--acc-green); border-color: rgba(38,166,154,0.3); }
+  .reg-trade-tag.short { color: var(--acc-red); border-color: rgba(239,83,80,0.3); }
+  .reg-trade-pnl { margin-left: auto; font-weight: 800; font-size: 1rem; }
+  .reg-trade-date { font-size: 0.74rem; color: var(--text-mut); }
+  .reg-trade-detail { font-size: 0.8rem; color: var(--text-sec); line-height: 1.6; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .reg-trade-detail b { color: var(--text-pri); font-weight: 600; }
+  .reg-trade-notes { font-size: 0.8rem; color: var(--text-mut); margin-top: 6px; font-style: italic; }
+  .reg-trade-del { background: none; border: none; color: var(--text-mut); cursor: pointer; font-size: 0.86rem; padding: 2px 6px; border-radius: 6px; transition: all 0.15s; }
+  .reg-trade-del:hover { color: var(--acc-red); background: rgba(239,83,80,0.08); }
+  .reg-pos { color: var(--acc-green); } .reg-neg { color: var(--acc-red); }
+  .reg-empty { text-align: center; color: var(--text-mut); padding: 32px 16px; font-size: 0.9rem; }
+
+  /* Disciplina: toggles del día */
+  .reg-today-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 24px; }
+  .reg-habits { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+  .reg-habit { display: flex; align-items: center; gap: 10px; padding: 13px 14px; border-radius: 11px; border: 1.5px solid var(--border); background: var(--bg-card2); cursor: pointer; transition: all 0.15s; font-size: 0.86rem; font-weight: 600; color: var(--text-sec); user-select: none; }
+  .reg-habit:hover { border-color: var(--border-hov); }
+  .reg-habit.on { border-color: rgba(22,163,74,0.5); background: rgba(22,163,74,0.08); color: var(--acc-green); }
+  .reg-habit-cb { flex-shrink: 0; width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border-hov); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 900; color: white; }
+  .reg-habit.on .reg-habit-cb { background: var(--acc-green); border-color: var(--acc-green); }
 </style>
 
 <!-- ────────────────────────── MOTOR ────────────────────────── -->
@@ -1284,6 +1343,7 @@ function showSection(name) {
   window.scrollTo(0, 0);
   // Render perezoso de la sección Aprendizaje al entrar
   if (name === 'aprendizaje' && typeof aprRender === 'function') aprRender();
+  if (name === 'registro' && typeof regRender === 'function') regRender();
 }
 document.addEventListener('DOMContentLoaded', () => showSection('home'));
 
@@ -1571,6 +1631,268 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
   document.addEventListener('DOMContentLoaded', function () {
     const sec = document.getElementById('aprendizaje-section');
     if (sec && sec.classList.contains('active')) window.aprRender();
+  });
+})();
+</script>
+
+<!-- ────────────────────────── REGISTRO ────────────────────────── -->
+<script>
+(function () {
+  'use strict';
+
+  function lg(k, fb) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; } catch (e) { return fb; } }
+  function ls(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function fmtMoney(n) { const v = Number(n) || 0; return (v >= 0 ? '+' : '') + v.toFixed(2) + '$'; }
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function isoOf(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function todayISO() { return isoOf(new Date()); }
+
+  const K_TRADES = 'nucleo_registro_trades';
+  const K_DISC   = 'nucleo_registro_disciplina';
+  const K_OBJ    = 'nucleo_registro_objetivos';
+
+  // ═══════════════════════ TRADING ═══════════════════════
+  function getTrades() { const t = lg(K_TRADES, []); return Array.isArray(t) ? t : []; }
+  function saveTrades(t) { ls(K_TRADES, t); }
+  function sortedTrades() { return getTrades().slice().sort((a, b) => ((b.fecha || '') + (b.hora || '')).localeCompare((a.fecha || '') + (a.hora || ''))); }
+
+  function statsOf(trades) {
+    let pnl = 0, w = 0, l = 0, ss = 0, sn = 0;
+    trades.forEach(t => {
+      const p = Number(t.pnl) || 0; pnl += p;
+      if (p > 0) w++; else if (p < 0) l++;
+      const sl = t.slip;
+      if (sl !== '' && sl != null && !isNaN(Number(sl))) { ss += Math.abs(Number(sl)); sn++; }
+    });
+    const wr = (w + l) ? Math.round(w / (w + l) * 100) : 0;
+    let streak = 0, st = '';
+    for (const t of sortedTrades()) {
+      const tp = (Number(t.pnl) || 0) >= 0 ? 'W' : 'L';
+      if (streak === 0) { st = tp; streak = 1; } else if (tp === st) streak++; else break;
+    }
+    return { n: trades.length, pnl, w, l, wr, streak, st, slip: sn ? ss / sn : null };
+  }
+
+  function renderTrading() {
+    const host = document.getElementById('reg-trading'); if (!host) return;
+    const trades = getTrades(); const s = statsOf(trades);
+    let h = '';
+    h += '<div class="cal-stats-bar">';
+    h += '<div class="cal-stat"><div class="cal-stat-num" style="color:var(--acc-blue)">' + s.n + '</div><div class="cal-stat-lbl">Trades</div></div>';
+    h += '<div class="cal-stat"><div class="cal-stat-num">' + s.wr + '%</div><div class="cal-stat-lbl">Win rate</div></div>';
+    h += '<div class="cal-stat"><div class="cal-stat-num ' + (s.pnl >= 0 ? 'reg-pos' : 'reg-neg') + '">' + fmtMoney(s.pnl) + '</div><div class="cal-stat-lbl">P&amp;L total</div></div>';
+    h += '<div class="cal-stat"><div class="cal-stat-num">' + (s.n ? s.streak + s.st : '—') + '</div><div class="cal-stat-lbl">Racha</div></div>';
+    h += '<div class="cal-stat"><div class="cal-stat-num">' + (s.slip != null ? s.slip.toFixed(1) : '—') + '</div><div class="cal-stat-lbl">Slip medio (tk)</div></div>';
+    h += '</div>';
+    h += '<div class="reg-actions">';
+    h += '<button class="reg-btn primary" onclick="regToggleForm()">➕ Registrar trade</button>';
+    h += '<button class="reg-btn" onclick="regExport()">⬇️ Exportar JSON</button>';
+    h += '<label class="reg-btn" style="display:inline-block">⬆️ Importar JSON<input type="file" accept=".json,application/json" style="display:none" onchange="regImport(event)"></label>';
+    h += '</div>';
+    h += tradeFormHtml();
+    h += '<div class="reg-trade-list">';
+    if (trades.length === 0) h += '<div class="reg-empty">Aún no hay trades. Cuando te llegue una señal por Telegram, regístrala con ➕.</div>';
+    else sortedTrades().forEach(t => h += tradeRowHtml(t));
+    h += '</div>';
+    host.innerHTML = h;
+  }
+
+  function tradeFormHtml() {
+    const niveles = ['PDH', 'PDL', 'ONH', 'ONL', 'SesH', 'SesL', 'ORH', 'ORL'];
+    const motivos = ['🎯 Target', '🛑 Stop', '⏰ Flatten', '⚠ Emergencia'];
+    let o = '<div class="reg-form" id="reg-form" style="display:none"><div class="reg-form-grid">';
+    o += '<div class="reg-field"><label>Fecha (ET)</label><input type="date" id="rf-fecha" value="' + todayISO() + '"></div>';
+    o += '<div class="reg-field"><label>Hora (ET)</label><input type="time" id="rf-hora"></div>';
+    o += '<div class="reg-field"><label>Instrumento</label><select id="rf-instr"><option>MES</option><option>MNQ</option><option>MGC</option></select></div>';
+    o += '<div class="reg-field"><label>Nivel</label><select id="rf-nivel">' + niveles.map(n => '<option>' + n + '</option>').join('') + '</select></div>';
+    o += '<div class="reg-field"><label>Lado</label><select id="rf-lado"><option>LONG</option><option>SHORT</option></select></div>';
+    o += '<div class="reg-field"><label>Fill entrada</label><input type="number" step="any" id="rf-entrada"></div>';
+    o += '<div class="reg-field"><label>Stop</label><input type="number" step="any" id="rf-stop"></div>';
+    o += '<div class="reg-field"><label>Target</label><input type="number" step="any" id="rf-target"></div>';
+    o += '<div class="reg-field"><label>Fill salida</label><input type="number" step="any" id="rf-salida"></div>';
+    o += '<div class="reg-field"><label>Motivo salida</label><select id="rf-motivo">' + motivos.map(m => '<option>' + m + '</option>').join('') + '</select></div>';
+    o += '<div class="reg-field"><label>P&amp;L ($)</label><input type="number" step="any" id="rf-pnl" placeholder="del resumen de Telegram"></div>';
+    o += '<div class="reg-field"><label>Slippage salida (ticks)</label><input type="number" step="any" id="rf-slip" placeholder="0"></div>';
+    o += '<div class="reg-field full"><label>Notas</label><textarea id="rf-notas" placeholder="régimen del día, incidencias, cómo fue el fill..."></textarea></div>';
+    o += '</div><div class="reg-form-foot"><button class="reg-btn" onclick="regToggleForm()">Cancelar</button><button class="reg-btn primary" onclick="regAddTrade()">Guardar trade</button></div></div>';
+    return o;
+  }
+
+  function tradeRowHtml(t) {
+    const p = Number(t.pnl) || 0; const cls = p > 0 ? 'win' : (p < 0 ? 'loss' : '');
+    const lado = (t.lado || '').toUpperCase();
+    const hasNum = (x) => x !== '' && x != null;
+    const dist = (hasNum(t.entrada) && hasNum(t.stop)) ? Math.abs(Number(t.entrada) - Number(t.stop)) : null;
+    let d = '<div class="reg-trade ' + cls + '"><div class="reg-trade-top">';
+    d += '<span class="reg-trade-instr">' + esc(t.instr || '') + '</span>';
+    if (t.nivel) d += '<span class="reg-trade-tag">' + esc(t.nivel) + '</span>';
+    d += '<span class="reg-trade-tag ' + (lado === 'LONG' ? 'long' : 'short') + '">' + esc(lado || '?') + '</span>';
+    if (t.motivo) d += '<span class="reg-trade-tag">' + esc(t.motivo) + '</span>';
+    d += '<span class="reg-trade-pnl ' + (p >= 0 ? 'reg-pos' : 'reg-neg') + '">' + fmtMoney(p) + '</span></div>';
+    d += '<div class="reg-trade-date">' + esc(t.fecha || '') + (t.hora ? ' · ' + esc(t.hora) + ' ET' : '') + '</div>';
+    d += '<div class="reg-trade-detail">';
+    if (hasNum(t.entrada)) d += '<span>Entrada <b>' + esc(t.entrada) + '</b></span>';
+    if (hasNum(t.stop)) d += '<span>Stop <b>' + esc(t.stop) + '</b>' + (dist != null ? ' (' + dist.toFixed(2) + ')' : '') + '</span>';
+    if (hasNum(t.target)) d += '<span>Target <b>' + esc(t.target) + '</b></span>';
+    if (hasNum(t.salida)) d += '<span>Salida <b>' + esc(t.salida) + '</b></span>';
+    if (hasNum(t.slip)) d += '<span>Slip <b>' + esc(t.slip) + '</b> tk</span>';
+    d += '</div>';
+    if (t.notas) d += '<div class="reg-trade-notes">' + esc(t.notas) + '</div>';
+    d += '<div style="text-align:right;margin-top:6px"><button class="reg-trade-del" onclick="regDelTrade(\'' + t.id + '\')">🗑 borrar</button></div></div>';
+    return d;
+  }
+
+  window.regToggleForm = function () { const f = document.getElementById('reg-form'); if (f) f.style.display = (f.style.display === 'none' ? 'block' : 'none'); };
+  function v(id) { const e = document.getElementById(id); return e ? e.value : ''; }
+  window.regAddTrade = function () {
+    const t = { id: 't' + Date.now(), fecha: v('rf-fecha'), hora: v('rf-hora'), instr: v('rf-instr'), nivel: v('rf-nivel'),
+      lado: v('rf-lado'), entrada: v('rf-entrada'), stop: v('rf-stop'), target: v('rf-target'), salida: v('rf-salida'),
+      motivo: v('rf-motivo'), pnl: v('rf-pnl'), slip: v('rf-slip'), notas: v('rf-notas') };
+    const arr = getTrades(); arr.push(t); saveTrades(arr); renderTrading();
+  };
+  window.regDelTrade = function (id) { saveTrades(getTrades().filter(x => x.id !== id)); renderTrading(); };
+  window.regExport = function () {
+    const blob = new Blob([JSON.stringify(getTrades(), null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'nucleo-trades-' + todayISO() + '.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(a.href);
+  };
+  window.regImport = function (ev) {
+    const file = ev.target.files && ev.target.files[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = function () {
+      try {
+        const arr = JSON.parse(r.result);
+        if (!Array.isArray(arr)) { alert('El archivo no es una lista de trades válida.'); return; }
+        const cur = getTrades(); const ids = {}; cur.forEach(t => ids[t.id] = 1);
+        let added = 0; arr.forEach(t => { if (t && t.id && !ids[t.id]) { cur.push(t); added++; } });
+        saveTrades(cur); renderTrading(); alert('Importados ' + added + ' trades nuevos.');
+      } catch (e) { alert('No se pudo leer el JSON.'); }
+    };
+    r.readAsText(file); ev.target.value = '';
+  };
+
+  // ═══════════════════════ DISCIPLINA ═══════════════════════
+  const HABITS = [ { k: 'gym', n: 'Gimnasio', e: '💪' }, { k: 'estudio', n: 'Estudio', e: '📚' }, { k: 'lectura', n: 'Lectura', e: '📖' }, { k: 'cuidado', n: 'Cuidado', e: '🧘' } ];
+  function getDisc() { const d = lg(K_DISC, {}); return (d && typeof d === 'object') ? d : {}; }
+  function dayComplete(rec) { return !!rec && HABITS.every(h => rec[h.k]); }
+  function dayCount(rec) { return rec ? HABITS.filter(h => rec[h.k]).length : 0; }
+  function discStreak(disc) {
+    const d = new Date();
+    if (!dayComplete(disc[todayISO()])) d.setDate(d.getDate() - 1);
+    let streak = 0;
+    for (;;) { if (dayComplete(disc[isoOf(d)])) { streak++; d.setDate(d.getDate() - 1); } else break; }
+    return streak;
+  }
+
+  function renderDisciplina() {
+    const host = document.getElementById('reg-disciplina'); if (!host) return;
+    const disc = getDisc(); const iso = todayISO(); const today = disc[iso] || {};
+    const streak = discStreak(disc);
+    const complete = Object.keys(disc).filter(d => dayComplete(disc[d])).length;
+    const now = new Date(); const y = now.getFullYear(), m = now.getMonth(); const elapsed = now.getDate();
+    let md = 0; for (let day = 1; day <= elapsed; day++) if (dayComplete(disc[y + '-' + pad(m + 1) + '-' + pad(day)])) md++;
+    const monthPct = elapsed ? Math.round(md / elapsed * 100) : 0;
+
+    let h = '<div class="reg-today-card"><div class="obj-subsection-heading" style="margin-bottom:2px">Hoy · ' + iso + '</div>';
+    h += '<p class="obj-subsection-desc" style="margin-bottom:14px">No fallar un día. Marca lo que cumpliste:</p><div class="reg-habits">';
+    HABITS.forEach(hb => { const on = !!today[hb.k]; h += '<div class="reg-habit ' + (on ? 'on' : '') + '" onclick="regToggleHabit(\'' + hb.k + '\')"><span class="reg-habit-cb">' + (on ? '✓' : '') + '</span>' + hb.e + ' ' + hb.n + '</div>'; });
+    h += '</div></div>';
+    h += '<div class="cal-stats-bar">';
+    h += '<div class="cal-stat"><div class="cal-stat-num">' + streak + '</div><div class="cal-stat-lbl">Racha (días)</div></div>';
+    h += '<div class="cal-stat"><div class="cal-stat-num" style="color:var(--acc-blue)">' + complete + '</div><div class="cal-stat-lbl">Días cumplidos</div></div>';
+    h += '<div class="cal-stat"><div class="cal-stat-num">' + monthPct + '%</div><div class="cal-stat-lbl">Este mes</div></div>';
+    h += '</div>';
+    h += '<div class="cal-months-wrap">' + monthHtml(1) + monthHtml(0) + '</div>';
+    host.innerHTML = h;
+  }
+
+  function monthHtml(back) {
+    const disc = getDisc(); const now = new Date(); const d = new Date(now.getFullYear(), now.getMonth() - back, 1);
+    const y = d.getFullYear(), m = d.getMonth();
+    const names = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const startBlank = (new Date(y, m, 1).getDay() + 6) % 7;
+    const days = new Date(y, m + 1, 0).getDate(); const tIso = todayISO();
+    let h = '<div class="cal-month-block"><div class="cal-month-title">' + names[m] + ' ' + y + '</div>';
+    h += '<div class="cal-weekdays">' + ['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(w => '<div class="cal-weekday-lbl">' + w + '</div>').join('') + '</div><div class="cal-grid">';
+    for (let i = 0; i < startBlank; i++) h += '<div class="cal-day empty"></div>';
+    for (let day = 1; day <= days; day++) {
+      const iso = y + '-' + pad(m + 1) + '-' + pad(day); const rec = disc[iso]; let cls = 'cal-day';
+      const future = iso > tIso;
+      if (future) cls += ' future';
+      else if (dayComplete(rec)) cls += ' done';
+      else if (rec && dayCount(rec) >= 0 && Object.keys(rec).some(k => k !== 'nota')) cls += ' miss';
+      if (iso === tIso) cls += ' today';
+      if (rec && rec.nota) cls += ' has-notes';
+      h += '<div class="' + cls + '"' + (future ? '' : ' onclick="regOpenDay(\'' + iso + '\')"') + '>' + day + '</div>';
+    }
+    return h + '</div></div>';
+  }
+
+  let _mDay = null, _mRec = null;
+  window.regOpenDay = function (iso) {
+    if (!iso) return;
+    _mDay = iso; _mRec = Object.assign({ nota: '' }, getDisc()[iso] || {});
+    const ov = document.createElement('div'); ov.className = 'cal-modal-overlay'; ov.id = 'reg-day-modal';
+    ov.onclick = function (e) { if (e.target === ov) regCloseDay(); };
+    ov.innerHTML = modalHtml(); document.body.appendChild(ov);
+  };
+  function modalHtml() {
+    let h = '<div class="cal-modal"><div class="cal-modal-date">' + esc(_mDay) + '</div><div class="cal-modal-sub">¿Cumpliste tus hábitos?</div>';
+    h += '<div class="reg-habits" style="margin-bottom:16px">';
+    HABITS.forEach(hb => { const on = !!_mRec[hb.k]; h += '<div class="reg-habit ' + (on ? 'on' : '') + '" onclick="regModalToggle(\'' + hb.k + '\')"><span class="reg-habit-cb">' + (on ? '✓' : '') + '</span>' + hb.e + ' ' + hb.n + '</div>'; });
+    h += '</div><div class="cal-modal-status-lbl">Nota del día (opcional)</div>';
+    h += '<textarea class="cal-modal-textarea" id="reg-day-note" placeholder="cómo fue el día...">' + esc(_mRec.nota || '') + '</textarea>';
+    h += '<div class="cal-modal-footer"><button class="cal-btn-cancel" onclick="regCloseDay()">Cancelar</button><button class="cal-btn-save" onclick="regSaveDay()">Guardar</button></div></div>';
+    return h;
+  }
+  function syncNote() { const n = document.getElementById('reg-day-note'); if (n) _mRec.nota = n.value; }
+  window.regModalToggle = function (k) { syncNote(); _mRec[k] = !_mRec[k]; const ov = document.getElementById('reg-day-modal'); if (ov) ov.innerHTML = modalHtml(); };
+  window.regSaveDay = function () { syncNote(); const disc = getDisc(); disc[_mDay] = _mRec; ls(K_DISC, disc); regCloseDay(); renderDisciplina(); };
+  window.regCloseDay = function () { const ov = document.getElementById('reg-day-modal'); if (ov) ov.remove(); _mDay = null; _mRec = null; };
+  window.regToggleHabit = function (k) { const disc = getDisc(); const iso = todayISO(); const rec = Object.assign({ nota: '' }, disc[iso] || {}); rec[k] = !rec[k]; disc[iso] = rec; ls(K_DISC, disc); renderDisciplina(); };
+
+  // ═══════════════════════ OBJETIVOS ═══════════════════════
+  const LONG_TERM = [
+    { cls: 'money', icon: '💰', title: '10.000 $/mes limpios', phrase: 'Vivir del trading en 2028. Ingresos consistentes que cubran todo y dejen margen.' },
+    { cls: 'world', icon: '🌍', title: 'Libertad', phrase: 'Trabajar desde donde quiera y a mi ritmo. El bot opera; yo dirijo y mejoro.' },
+    { cls: 'car',   icon: '🏎️', title: 'BMW M2 CS', phrase: 'El recordatorio físico de que el plan, con disciplina, funcionó.' }
+  ];
+  const SHORT_TERM = [
+    'Mejora continua del bot (registrar CADA backtest)',
+    'Encontrar trabajo',
+    'Primera prop firm',
+    'Fondearse (pasar la evaluación)',
+    'Escalar cuentas / copier'
+  ];
+  function renderObjetivos() {
+    const host = document.getElementById('reg-objetivos'); if (!host) return;
+    const obj = lg(K_OBJ, {}); const checks = (obj && obj.checks) ? obj.checks : {};
+    let h = '<div class="obj-subsection"><div class="obj-subsection-title">Largo plazo</div><div class="obj-subsection-heading">Hacia dónde voy</div><p class="obj-subsection-desc">El porqué de todo esto.</p><div class="obj-goals-grid">';
+    LONG_TERM.forEach(g => { h += '<div class="obj-goal-card ' + g.cls + '"><div class="obj-goal-card-glow"></div><span class="obj-goal-icon">' + g.icon + '</span><div class="obj-goal-title">' + esc(g.title) + '</div><div class="obj-goal-phrase">' + esc(g.phrase) + '</div></div>'; });
+    h += '</div></div>';
+    const done = SHORT_TERM.filter((_, i) => checks['s' + i]).length;
+    h += '<div class="obj-subsection"><div class="obj-subsection-title">Corto plazo</div><div class="obj-subsection-heading">El camino ahora</div>';
+    h += '<div class="obj-progress-bar-wrap"><div class="obj-progress-label"><span>Progreso</span><span class="obj-progress-count">' + done + ' / ' + SHORT_TERM.length + '</span></div><div class="obj-progress-bar"><div class="obj-progress-fill" style="width:' + (SHORT_TERM.length ? Math.round(done / SHORT_TERM.length * 100) : 0) + '%"></div></div></div>';
+    h += '<div class="obj-short-list">';
+    SHORT_TERM.forEach((s, i) => { const on = !!checks['s' + i]; h += '<div class="obj-short-item ' + (on ? 'checked' : '') + '" onclick="regToggleObj(' + i + ')"><div class="obj-custom-cb"><span class="obj-custom-cb-check">✓</span></div><div class="obj-short-text">' + esc(s) + '</div></div>'; });
+    h += '</div></div>';
+    host.innerHTML = h;
+  }
+  window.regToggleObj = function (i) { const obj = lg(K_OBJ, {}); if (!obj.checks) obj.checks = {}; obj.checks['s' + i] = !obj.checks['s' + i]; ls(K_OBJ, obj); renderObjetivos(); };
+
+  // ═══════════════════════ NAV / RENDER ═══════════════════════
+  window.regShowTab = function (tab) {
+    document.querySelectorAll('.reg-subtab').forEach(b => b.classList.toggle('active', b.dataset.reg === tab));
+    document.querySelectorAll('.reg-subview').forEach(view => view.classList.remove('active'));
+    const view = document.getElementById('reg-' + tab); if (view) view.classList.add('active');
+    if (tab === 'trading') renderTrading(); else if (tab === 'disciplina') renderDisciplina(); else if (tab === 'objetivos') renderObjetivos();
+  };
+  window.regRender = function () { renderTrading(); renderDisciplina(); renderObjetivos(); };
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const sec = document.getElementById('registro-section');
+    if (sec && sec.classList.contains('active')) window.regRender();
   });
 })();
 </script>
