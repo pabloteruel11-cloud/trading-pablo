@@ -1651,6 +1651,8 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
   const K_TRADES = 'nucleo_registro_trades';
   const K_DISC   = 'nucleo_registro_disciplina';
   const K_OBJ    = 'nucleo_registro_objetivos';
+  let _rfFoto = '';    // foto (dataURL) en preparación para el formulario de trade
+  let _tgParsed = [];  // trades parseados de Telegram, pendientes de confirmar import
 
   // ═══════════════════════ TRADING ═══════════════════════
   function getTrades() { const t = lg(K_TRADES, []); return Array.isArray(t) ? t : []; }
@@ -1687,6 +1689,7 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
     h += '</div>';
     h += '<div class="reg-actions">';
     h += '<button class="reg-btn primary" onclick="regToggleForm()">➕ Registrar trade</button>';
+    h += '<button class="reg-btn" onclick="regOpenImport()">📥 Importar de Telegram</button>';
     h += '<button class="reg-btn" onclick="regExport()">⬇️ Exportar JSON</button>';
     h += '<label class="reg-btn" style="display:inline-block">⬆️ Importar JSON<input type="file" accept=".json,application/json" style="display:none" onchange="regImport(event)"></label>';
     h += '</div>';
@@ -1715,6 +1718,7 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
     o += '<div class="reg-field"><label>P&amp;L ($)</label><input type="number" step="any" id="rf-pnl" placeholder="del resumen de Telegram"></div>';
     o += '<div class="reg-field"><label>Slippage salida (ticks)</label><input type="number" step="any" id="rf-slip" placeholder="0"></div>';
     o += '<div class="reg-field full"><label>Notas</label><textarea id="rf-notas" placeholder="régimen del día, incidencias, cómo fue el fill..."></textarea></div>';
+    o += '<div class="reg-field full"><label>Foto / captura (opcional)</label><input type="file" accept="image/*" id="rf-foto" onchange="regFotoPick(event)"><div id="rf-foto-prev"></div></div>';
     o += '</div><div class="reg-form-foot"><button class="reg-btn" onclick="regToggleForm()">Cancelar</button><button class="reg-btn primary" onclick="regAddTrade()">Guardar trade</button></div></div>';
     return o;
   }
@@ -1739,7 +1743,9 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
     if (hasNum(t.slip)) d += '<span>Slip <b>' + esc(t.slip) + '</b> tk</span>';
     d += '</div>';
     if (t.notas) d += '<div class="reg-trade-notes">' + esc(t.notas) + '</div>';
-    d += '<div style="text-align:right;margin-top:6px"><button class="reg-trade-del" onclick="regDelTrade(\'' + t.id + '\')">🗑 borrar</button></div></div>';
+    d += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">';
+    d += t.foto ? '<button class="reg-trade-del" onclick="regVerFoto(\'' + t.id + '\')">📷 ver foto</button>' : '<span></span>';
+    d += '<button class="reg-trade-del" onclick="regDelTrade(\'' + t.id + '\')">🗑 borrar</button></div></div>';
     return d;
   }
 
@@ -1748,8 +1754,11 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
   window.regAddTrade = function () {
     const t = { id: 't' + Date.now(), fecha: v('rf-fecha'), hora: v('rf-hora'), instr: v('rf-instr'), nivel: v('rf-nivel'),
       lado: v('rf-lado'), entrada: v('rf-entrada'), stop: v('rf-stop'), target: v('rf-target'), salida: v('rf-salida'),
-      motivo: v('rf-motivo'), pnl: v('rf-pnl'), slip: v('rf-slip'), notas: v('rf-notas') };
-    const arr = getTrades(); arr.push(t); saveTrades(arr); renderTrading();
+      motivo: v('rf-motivo'), pnl: v('rf-pnl'), slip: v('rf-slip'), notas: v('rf-notas'), foto: _rfFoto || '' };
+    const arr = getTrades(); arr.push(t);
+    try { localStorage.setItem(K_TRADES, JSON.stringify(arr)); }
+    catch (e) { alert('No se pudo guardar: la memoria del navegador está llena (las fotos ocupan mucho). Exporta tus trades a JSON y borra algún trade con foto.'); return; }
+    _rfFoto = ''; renderTrading();
   };
   window.regDelTrade = function (id) { saveTrades(getTrades().filter(x => x.id !== id)); renderTrading(); };
   window.regExport = function () {
@@ -1770,6 +1779,135 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
       } catch (e) { alert('No se pudo leer el JSON.'); }
     };
     r.readAsText(file); ev.target.value = '';
+  };
+
+  // ── Foto: comprimir y adjuntar al formulario de trade ──
+  function downscaleImg(file, cb) {
+    try {
+      const img = new Image(); const url = URL.createObjectURL(file);
+      img.onload = function () {
+        const max = 1000; let w = img.width, h = img.height;
+        if (w > max) { h = Math.round(h * max / w); w = max; }
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        try { cb(c.toDataURL('image/jpeg', 0.7)); } catch (e) { cb(null); }
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); cb(null); };
+      img.src = url;
+    } catch (e) { cb(null); }
+  }
+  window.regFotoPick = function (ev) {
+    const f = ev.target.files && ev.target.files[0]; if (!f) return;
+    downscaleImg(f, function (durl) {
+      _rfFoto = durl || '';
+      const p = document.getElementById('rf-foto-prev');
+      if (p) p.innerHTML = durl ? '<img src="' + durl + '" style="max-width:100%;border-radius:8px;margin-top:8px">' : '<span class="reg-neg" style="font-size:0.8rem">No se pudo leer la imagen.</span>';
+    });
+  };
+  window.regVerFoto = function (id) {
+    const t = getTrades().find(function (x) { return x.id === id; }); if (!t || !t.foto) return;
+    const ov = document.createElement('div'); ov.className = 'cal-modal-overlay';
+    ov.onclick = function () { ov.remove(); };
+    ov.innerHTML = '<img src="' + t.foto + '" style="max-width:95%;max-height:90vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.85)">';
+    document.body.appendChild(ov);
+  };
+
+  // ── Importar desde Telegram (pegar-y-parsear) ──
+  function parseTelegram(text) {
+    const lines = String(text || '').split(/\r?\n/).map(function (l) { return l.trim(); });
+    const out = []; const openByTag = {}; let fecha = '';
+    const tagRe = /\[([A-Za-z0-9]+)\]/;
+    function grab(re, s) { const m = s.match(re); return m ? m[1] : ''; }
+    for (let i = 0; i < lines.length; i++) {
+      const ln = lines[i];
+      if (/Resumen del d[ií]a/i.test(ln)) { const m = ln.match(/(\d{4}-\d{2}-\d{2})/); if (m) fecha = m[1]; continue; }
+      if (/ENTRADA/.test(ln)) {
+        const tag = (ln.match(tagRe) || [])[1] || '';
+        const lado = /SHORT/i.test(ln) ? 'SHORT' : (/LONG/i.test(ln) ? 'LONG' : '');
+        const mn = ln.match(/(?:LONG|SHORT)\s+(\S+)/i); const nivel = mn ? mn[1] : '';
+        const tr = { instr: tag, lado: lado, nivel: nivel, entrada: '', stop: '', target: '', salida: '', motivo: '', pnl: '', _closed: false };
+        for (let j = i + 1; j < lines.length && j < i + 6; j++) {
+          const l2 = lines[j];
+          if (/ENTRADA|CIERRE|Resumen del d[ií]a/.test(l2)) break;
+          if (/Fill:/i.test(l2)) tr.entrada = grab(/Fill:\s*([0-9.]+)/i, l2);
+          else if (/Stop:/i.test(l2)) tr.stop = grab(/Stop:\s*([0-9.]+)/i, l2);
+          else if (/Target:/i.test(l2)) tr.target = grab(/Target:\s*([0-9.]+)/i, l2);
+        }
+        if (!openByTag[tag]) openByTag[tag] = [];
+        openByTag[tag].push(tr); out.push(tr);
+      } else if (/CIERRE/.test(ln)) {
+        const tag = (ln.match(tagRe) || [])[1] || '';
+        const lado = /SHORT/i.test(ln) ? 'SHORT' : (/LONG/i.test(ln) ? 'LONG' : '');
+        const parts = ln.split('·'); const motivo = parts.length > 1 ? parts[parts.length - 1].trim() : '';
+        let tr = null; const arr = openByTag[tag] || [];
+        for (let k = arr.length - 1; k >= 0; k--) { if (!arr[k]._closed) { tr = arr[k]; break; } }
+        if (!tr) { tr = { instr: tag, lado: lado, nivel: '', entrada: '', stop: '', target: '', salida: '', motivo: '', pnl: '', _closed: false }; out.push(tr); }
+        tr.motivo = motivo; tr._closed = true; if (!tr.lado) tr.lado = lado;
+        for (let j = i + 1; j < lines.length && j < i + 5; j++) {
+          const l2 = lines[j];
+          if (/ENTRADA|CIERRE|Resumen del d[ií]a/.test(l2)) break;
+          const ms = l2.match(/Salida:\s*([0-9.]+)\s*\|\s*Entrada:\s*([0-9.]+)/i);
+          if (ms) { tr.salida = ms[1]; if (!tr.entrada) tr.entrada = ms[2]; }
+          else if (/P&L trade:/i.test(l2)) tr.pnl = grab(/P&L trade:\s*(-?[0-9.]+)/i, l2);
+        }
+      }
+    }
+    out.forEach(function (t) {
+      t.fecha = fecha; t.hora = ''; t.slip = ''; t.notas = 'Importado de Telegram';
+      if (!t.motivo) t.motivo = t.salida ? 'salida' : 'abierta';
+      delete t._closed;
+    });
+    return out;
+  }
+  function tgKey(t) { return (t.instr || '') + '|' + (t.fecha || '') + '|' + (t.entrada || '') + '|' + (t.salida || '') + '|' + (t.pnl || ''); }
+
+  window.regOpenImport = function () {
+    const ov = document.createElement('div'); ov.className = 'cal-modal-overlay'; ov.id = 'reg-import-modal';
+    ov.onclick = function (e) { if (e.target === ov) ov.remove(); };
+    ov.innerHTML = '<div class="cal-modal" style="max-width:560px">'
+      + '<div class="cal-modal-date">📥 Importar desde Telegram</div>'
+      + '<div class="cal-modal-sub">Pega el mensaje del día (ENTRADA / CIERRE / Resumen). Núcleo extrae los trades solo.</div>'
+      + '<textarea class="cal-modal-textarea" id="reg-tg-text" style="min-height:150px" placeholder="Pega aquí los mensajes de Telegram tal cual te llegan..."></textarea>'
+      + '<button class="reg-btn primary" style="width:100%;margin-bottom:14px" onclick="regParseTg()">🔎 Analizar</button>'
+      + '<div id="reg-tg-preview"></div>'
+      + '<div class="cal-modal-footer"><button class="cal-btn-cancel" onclick="document.getElementById(\'reg-import-modal\').remove()">Cerrar</button></div>'
+      + '</div>';
+    document.body.appendChild(ov);
+  };
+  window.regParseTg = function () {
+    const ta = document.getElementById('reg-tg-text'); const parsed = parseTelegram(ta ? ta.value : '');
+    const cur = getTrades(); const keys = {}; cur.forEach(function (t) { keys[tgKey(t)] = 1; });
+    _tgParsed = parsed.map(function (t) { return { t: t, dup: !!keys[tgKey(t)] }; });
+    const nuevos = _tgParsed.filter(function (x) { return !x.dup; }).length;
+    const prev = document.getElementById('reg-tg-preview'); if (!prev) return;
+    if (parsed.length === 0) { prev.innerHTML = '<div class="reg-empty">No encontré trades. Pega los mensajes de ENTRADA/CIERRE tal cual te llegan.</div>'; return; }
+    let h = '<div style="margin-bottom:10px;font-size:0.85rem;color:var(--text-sec)">Encontrados <b>' + parsed.length + '</b> · <b class="reg-pos">' + nuevos + '</b> nuevos · ' + (parsed.length - nuevos) + ' ya registrados</div>';
+    h += '<div class="reg-trade-list" style="max-height:260px;overflow:auto;margin-bottom:14px">';
+    _tgParsed.forEach(function (x) {
+      const t = x.t; const p = Number(t.pnl) || 0;
+      h += '<div class="reg-trade ' + (p > 0 ? 'win' : (p < 0 ? 'loss' : '')) + '" style="opacity:' + (x.dup ? '0.45' : '1') + '"><div class="reg-trade-top">'
+        + '<span class="reg-trade-instr">' + esc(t.instr) + '</span>'
+        + (t.nivel ? '<span class="reg-trade-tag">' + esc(t.nivel) + '</span>' : '')
+        + '<span class="reg-trade-tag ' + (t.lado === 'LONG' ? 'long' : 'short') + '">' + esc(t.lado || '?') + '</span>'
+        + (t.motivo ? '<span class="reg-trade-tag">' + esc(t.motivo) + '</span>' : '')
+        + '<span class="reg-trade-pnl ' + (p >= 0 ? 'reg-pos' : 'reg-neg') + '">' + (t.pnl !== '' ? fmtMoney(p) : '—') + '</span></div>'
+        + (x.dup ? '<div class="reg-trade-date">ya registrado</div>' : '') + '</div>';
+    });
+    h += '</div>';
+    h += '<button class="reg-btn primary" style="width:100%" ' + (nuevos ? '' : 'disabled ') + 'onclick="regDoImport()">✓ Importar ' + nuevos + ' trades nuevos</button>';
+    prev.innerHTML = h;
+  };
+  window.regDoImport = function () {
+    const cur = getTrades(); const keys = {}; cur.forEach(function (t) { keys[tgKey(t)] = 1; });
+    let added = 0;
+    _tgParsed.forEach(function (x) {
+      if (x.dup) return; const t = x.t; const k = tgKey(t); if (keys[k]) return;
+      t.id = 't' + Date.now() + Math.floor(Math.random() * 1000); cur.push(t); keys[k] = 1; added++;
+    });
+    try { localStorage.setItem(K_TRADES, JSON.stringify(cur)); } catch (e) { alert('No se pudo guardar (memoria llena).'); return; }
+    const m = document.getElementById('reg-import-modal'); if (m) m.remove();
+    renderTrading(); alert('Importados ' + added + ' trades desde Telegram.');
   };
 
   // ═══════════════════════ DISCIPLINA ═══════════════════════
