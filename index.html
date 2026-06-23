@@ -980,9 +980,18 @@
       <h1 class="mb8">Inversión</h1>
       <p>Tu asesor financiero personal: perfil de inversor, catálogo de activos y reparto recomendado de tus aportaciones.</p>
     </div>
-    <div class="card">
-      <p style="text-align:center;color:var(--text-mut,#8a8a8a);padding:28px 12px;">💰 Contenido en construcción — <strong>Fase 6</strong>.</p>
+
+    <div class="inv-subtabs" role="tablist">
+      <button class="inv-subtab active" data-inv="perfil"      onclick="invShowTab('perfil')">👤 Perfil</button>
+      <button class="inv-subtab"        data-inv="catalogo"    onclick="invShowTab('catalogo')">📊 Catálogo</button>
+      <button class="inv-subtab"        data-inv="calculadora" onclick="invShowTab('calculadora')">🧮 Calculadora</button>
+      <button class="inv-subtab"        data-inv="reparto"     onclick="invShowTab('reparto')">🥧 Reparto</button>
     </div>
+
+    <div id="inv-perfil"      class="inv-subview active"></div>
+    <div id="inv-catalogo"    class="inv-subview"></div>
+    <div id="inv-calculadora" class="inv-subview"></div>
+    <div id="inv-reparto"     class="inv-subview"></div>
   </section>
 
 </main>
@@ -1325,6 +1334,35 @@
   .reg-habit.on { border-color: rgba(22,163,74,0.5); background: rgba(22,163,74,0.08); color: var(--acc-green); }
   .reg-habit-cb { flex-shrink: 0; width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border-hov); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 900; color: white; }
   .reg-habit.on .reg-habit-cb { background: var(--acc-green); border-color: var(--acc-green); }
+
+  /* ── INVERSIÓN ─────────────────────────────────────────────── */
+  .inv-subtabs { display: flex; gap: 8px; margin-bottom: 24px; background: var(--bg-card2); border: 1px solid var(--border); border-radius: 12px; padding: 5px; flex-wrap: wrap; }
+  .inv-subtab { flex: 1; min-width: 78px; background: none; border: none; color: var(--text-sec); font-size: 0.83rem; font-weight: 600; padding: 11px 9px; border-radius: 8px; cursor: pointer; transition: color 0.2s, background 0.2s; }
+  .inv-subtab:hover { color: var(--text-pri); }
+  .inv-subtab.active { color: white; background: linear-gradient(135deg, var(--acc-blue), #2563eb); box-shadow: 0 2px 12px rgba(59,130,246,0.35); }
+  .inv-subview { display: none; animation: fadeIn 0.25s ease; }
+  .inv-subview.active { display: block; }
+
+  .inv-disclaimer { background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.22); border-radius: 12px; padding: 13px 16px; font-size: 0.78rem; color: var(--text-sec); line-height: 1.6; margin-bottom: 20px; }
+  .inv-disclaimer strong { color: var(--acc-yellow); }
+  .inv-dim-title { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-mut); margin: 26px 0 12px; display: flex; align-items: center; gap: 8px; }
+  .inv-dim-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .inv-q { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
+  .inv-q-text { font-size: 0.9rem; font-weight: 600; color: var(--text-pri); margin-bottom: 12px; line-height: 1.5; }
+  .inv-opts { display: flex; flex-direction: column; gap: 8px; }
+  .inv-opt { display: flex; align-items: center; gap: 11px; padding: 11px 13px; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 0.85rem; color: var(--text-sec); user-select: none; }
+  .inv-opt:hover { border-color: var(--border-hov); }
+  .inv-opt.sel { border-color: var(--acc-blue); background: rgba(59,130,246,0.08); color: var(--text-pri); }
+  .inv-opt-radio { flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border-hov); display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .inv-opt.sel .inv-opt-radio { border-color: var(--acc-blue); }
+  .inv-opt.sel .inv-opt-radio::after { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--acc-blue); }
+  .inv-result { text-align: center; padding: 24px 20px; }
+  .inv-result-score { font-size: 3rem; font-weight: 800; line-height: 1; margin-bottom: 10px; }
+  .inv-result-badge { display: inline-block; font-size: 1.25rem; font-weight: 800; padding: 9px 26px; border-radius: 999px; }
+  .inv-result-badge.cons { background: rgba(22,163,74,0.12); color: var(--acc-green); border: 1px solid rgba(22,163,74,0.3); }
+  .inv-result-badge.mod  { background: rgba(251,191,36,0.12); color: var(--acc-yellow); border: 1px solid rgba(251,191,36,0.3); }
+  .inv-result-badge.arr  { background: rgba(239,83,80,0.12); color: var(--acc-red); border: 1px solid rgba(239,83,80,0.3); }
+  .inv-warn { background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.28); border-radius: 10px; padding: 12px 14px; font-size: 0.82rem; color: var(--acc-yellow); margin: 12px 0; text-align: left; line-height: 1.5; }
 </style>
 
 <!-- ────────────────────────── MOTOR ────────────────────────── -->
@@ -1344,6 +1382,7 @@ function showSection(name) {
   // Render perezoso de la sección Aprendizaje al entrar
   if (name === 'aprendizaje' && typeof aprRender === 'function') aprRender();
   if (name === 'registro' && typeof regRender === 'function') regRender();
+  if (name === 'inversion' && typeof invRender === 'function') invRender();
 }
 document.addEventListener('DOMContentLoaded', () => showSection('home'));
 
@@ -2031,6 +2070,159 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
   document.addEventListener('DOMContentLoaded', function () {
     const sec = document.getElementById('registro-section');
     if (sec && sec.classList.contains('active')) window.regRender();
+  });
+})();
+</script>
+
+<!-- ────────────────────────── INVERSIÓN ────────────────────────── -->
+<script>
+(function () {
+  'use strict';
+  function lg(k, fb) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; } catch (e) { return fb; } }
+  function ls(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function todayISO() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+
+  const K_PERFIL = 'nucleo_inversion_perfil';
+
+  // Cuestionario OFICIAL — anclado a MiFID II (Reg. 2017/565 arts. 54-55) + guías ESMA + CNMV.
+  // Pesos por dimensión (A20/B25/C25/D20/E10 = 100). Puntos de opción = informe 03-perfil-inversor.
+  const DIM_W = { A: 20, B: 25, C: 25, D: 20, E: 10 };
+  const PERFIL_Q = [
+    { dim: 'A', titulo: 'Horizonte temporal', q: [
+      { id: 'A1', texto: '¿Cuándo prevés necesitar el dinero que vas a invertir?', op: [ { t: 'En menos de 1 año', p: 0 }, { t: 'Entre 1 y 3 años', p: 4 }, { t: 'Entre 3 y 7 años', p: 8 }, { t: 'Más de 7 años', p: 10 } ] },
+      { id: 'A2', texto: '¿Tienes ya un fondo de emergencia (gastos de 3-6 meses) aparte de lo que vas a invertir?', op: [ { t: 'No', p: 0 }, { t: 'Parcialmente', p: 5 }, { t: 'Sí, cubierto', p: 10 } ] }
+    ] },
+    { dim: 'B', titulo: 'Capacidad financiera', q: [
+      { id: 'B1', texto: '¿Qué parte de tus ingresos mensuales te sobra después de gastos fijos y deudas?', op: [ { t: 'Nada / voy justo', p: 0 }, { t: 'Hasta un 10 %', p: 5 }, { t: 'Entre 10 % y 30 %', p: 8 }, { t: 'Más del 30 %', p: 10 } ] },
+      { id: 'B2', texto: 'El dinero que vas a invertir, ¿qué % representa de tu patrimonio total (ahorros + inversiones)?', op: [ { t: 'Menos del 10 %', p: 10 }, { t: 'Entre 10 % y 25 %', p: 7 }, { t: 'Entre 25 % y 50 %', p: 3 }, { t: 'Más del 50 %', p: 0 } ] },
+      { id: 'B3', texto: '¿Tienes deudas o compromisos financieros periódicos relevantes (préstamos, hipoteca alta)?', op: [ { t: 'Sí, elevados', p: 0 }, { t: 'Sí, moderados', p: 5 }, { t: 'No / poco significativos', p: 10 } ] }
+    ] },
+    { dim: 'C', titulo: 'Tolerancia al riesgo', q: [
+      { id: 'C1', texto: 'Si inviertes 1.000 € y cae de valor, ¿cuál es la pérdida máxima que aguantarías sin vender?', op: [ { t: 'Ninguna pérdida (0 %)', p: 0 }, { t: 'Hasta −10 % (900 €)', p: 4 }, { t: 'Hasta −25 % (750 €)', p: 7 }, { t: '−40 % o más (≤ 600 €)', p: 10 } ] },
+      { id: 'C2', texto: 'Tu cartera pierde un 20 % en un mes por una caída general del mercado. ¿Qué haces?', op: [ { t: 'Vendo todo para no perder más', p: 0 }, { t: 'Vendo una parte', p: 4 }, { t: 'No hago nada y espero', p: 8 }, { t: 'Aprovecho para comprar más', p: 10 } ] },
+      { id: 'C3', texto: '¿Qué frase describe mejor lo que buscas?', op: [ { t: 'Preservar el dinero aunque la rentabilidad sea muy baja', p: 0 }, { t: 'Crecer de forma moderada asumiendo alguna caída', p: 5 }, { t: 'Maximizar la rentabilidad asumiendo caídas fuertes', p: 10 } ] }
+    ] },
+    { dim: 'D', titulo: 'Conocimientos y experiencia', q: [
+      { id: 'D1', texto: '¿Con qué productos has operado realmente y con qué frecuencia?', op: [ { t: 'Ninguno', p: 0 }, { t: 'Solo depósitos / fondos básicos, alguna vez', p: 4 }, { t: 'Acciones o ETFs, varias veces al año', p: 7 }, { t: 'Derivados / apalancados, de forma habitual', p: 10 } ] },
+      { id: 'D2', texto: '(Test) Si una acción sube un 50 % y luego baja un 50 %, respecto al precio inicial estás…', op: [ { t: 'Por debajo del inicio', p: 10 }, { t: 'Igual que al inicio', p: 0 }, { t: 'Por encima del inicio', p: 0 } ] },
+      { id: 'D3', texto: '(Test) ¿Qué afirmación es correcta sobre la relación riesgo-rentabilidad?', op: [ { t: 'Mayor rentabilidad esperada suele implicar mayor riesgo', p: 10 }, { t: 'Se puede tener alta rentabilidad sin ningún riesgo', p: 0 }, { t: 'El riesgo no tiene relación con la rentabilidad', p: 0 } ] },
+      { id: 'D4', texto: '(Test) Si el BCE sube los tipos de interés, normalmente…', op: [ { t: 'El precio de los bonos ya emitidos tiende a bajar', p: 10 }, { t: 'Los bonos ya emitidos suben siempre', p: 0 }, { t: 'No afecta a ningún activo', p: 0 } ] }
+    ] },
+    { dim: 'E', titulo: 'Objetivo', q: [
+      { id: 'E1', texto: '¿Cuál es la finalidad principal de esta inversión?', op: [ { t: 'Tener un colchón disponible / no perder poder adquisitivo', p: 0 }, { t: 'Ahorrar para una meta a medio plazo (vivienda, estudios)', p: 5 }, { t: 'Hacer crecer el capital a largo plazo / jubilación lejana', p: 10 } ] }
+    ] }
+  ];
+
+  let _ans = {};
+
+  function fracs(ans) {
+    const pts = {}, max = {};
+    PERFIL_Q.forEach(d => {
+      pts[d.dim] = 0; max[d.dim] = 0;
+      d.q.forEach(q => {
+        max[d.dim] += Math.max.apply(null, q.op.map(o => o.p));
+        const s = ans[q.id];
+        if (s != null && q.op[s]) pts[d.dim] += q.op[s].p;
+      });
+    });
+    const f = {};
+    Object.keys(max).forEach(k => { f[k] = max[k] ? pts[k] / max[k] : 0; });
+    return f;
+  }
+
+  function computeProfile(ans) {
+    const f = fracs(ans);
+    let score = 0;
+    Object.keys(DIM_W).forEach(k => { score += f[k] * DIM_W[k]; });
+    score = Math.round(score);
+    let perfil, sri, cls;
+    if (score <= 39) { perfil = 'Conservador'; sri = '1–2'; cls = 'cons'; }
+    else if (score <= 69) { perfil = 'Moderado'; sri = '3–4'; cls = 'mod'; }
+    else { perfil = 'Arriesgado'; sri = '5–7'; cls = 'arr'; }
+    let capped = false;
+    if (f.B < 0.40 && perfil === 'Arriesgado') { perfil = 'Moderado'; sri = '3–4'; cls = 'mod'; capped = true; }
+    const warns = [];
+    if (f.D < 0.40 && f.C > 0.70) warns.push('Has indicado poca experiencia pero mucha tolerancia al riesgo. ¿Quieres revisar tus respuestas?');
+    if (f.B < 0.40 && f.C > 0.70) warns.push('Tu capacidad financiera es ajustada para el nivel de riesgo que has elegido.');
+    if (ans.A1 === 0 && score >= 70) warns.push('Tu horizonte es muy corto (menos de 1 año): los productos de riesgo alto no encajan con horizontes tan cortos.');
+    return { score, perfil, sri, cls, capped, warns };
+  }
+
+  function disclaimerHtml() {
+    return '<div class="inv-disclaimer"><strong>Aviso:</strong> este cuestionario es una herramienta <strong>educativa</strong> para reflexionar sobre tu perfil de inversor. No constituye asesoramiento financiero ni una recomendación de inversión (MiFID II, Directiva 2014/65/UE). Esta app no es una empresa de servicios de inversión registrada en la CNMV y no evalúa la idoneidad de ningún producto. El resultado es orientativo y se basa en tus respuestas. Infórmate en fuentes oficiales (CNMV: cnmv.es) y, si lo necesitas, consulta con una entidad autorizada. Invertir conlleva riesgo de pérdida del capital.</div>';
+  }
+
+  function renderPerfil() {
+    const host = document.getElementById('inv-perfil'); if (!host) return;
+    const saved = lg(K_PERFIL, null);
+    if (saved && saved.perfil) { host.innerHTML = resultHtml(saved); return; }
+    _ans = {};
+    let h = disclaimerHtml();
+    h += '<p style="font-size:0.86rem;color:var(--text-sec);margin-bottom:8px">Responde a las 14 preguntas para conocer tu perfil de inversor (criterio oficial MiFID II / ESMA / CNMV).</p>';
+    PERFIL_Q.forEach(d => {
+      h += '<div class="inv-dim-title">' + esc(d.titulo) + '</div>';
+      d.q.forEach(q => {
+        h += '<div class="inv-q"><div class="inv-q-text">' + esc(q.texto) + '</div><div class="inv-opts">';
+        q.op.forEach((o, idx) => { h += '<div class="inv-opt" onclick="invSelectOpt(this,\'' + q.id + '\',' + idx + ')"><span class="inv-opt-radio"></span><span>' + esc(o.t) + '</span></div>'; });
+        h += '</div></div>';
+      });
+    });
+    h += '<button class="btn-cta" style="width:100%;margin-top:10px" onclick="invSubmit()">Ver mi perfil →</button>';
+    host.innerHTML = h;
+  }
+
+  function resultHtml(r) {
+    let h = '<div class="card inv-result">';
+    h += '<div class="inv-result-score ' + (r.cls === 'cons' ? 'reg-pos' : (r.cls === 'arr' ? 'reg-neg' : '')) + '">' + r.score + '<span style="font-size:1rem;color:var(--text-mut);font-weight:600"> / 100</span></div>';
+    h += '<div class="inv-result-badge ' + r.cls + '">' + esc(r.perfil) + '</div>';
+    h += '<p style="color:var(--text-sec);margin-top:14px;font-size:0.9rem">Riesgo de producto coherente: <strong style="color:var(--text-pri)">SRI ' + r.sri + '</strong> en la escala oficial PRIIPs (1 = bajo, 7 = alto).</p>';
+    if (r.capped) h += '<div class="inv-warn">Tu tolerancia daría un perfil más arriesgado, pero tu <strong>capacidad financiera</strong> es ajustada, así que el perfil se limita a Moderado (criterio CNMV: la capacidad puede bajar el perfil, nunca subirlo).</div>';
+    (r.warns || []).forEach(w => { h += '<div class="inv-warn">⚠ ' + esc(w) + '</div>'; });
+    h += '</div>';
+    h += disclaimerHtml();
+    h += '<button class="reg-btn" style="width:100%;margin-top:4px" onclick="invReset()">↺ Repetir test</button>';
+    return h;
+  }
+
+  window.invSelectOpt = function (el, qid, idx) {
+    _ans[qid] = idx;
+    const opts = el.parentNode.querySelectorAll('.inv-opt');
+    opts.forEach(o => o.classList.remove('sel'));
+    el.classList.add('sel');
+  };
+  window.invSubmit = function () {
+    const ids = []; PERFIL_Q.forEach(d => d.q.forEach(q => ids.push(q.id)));
+    const missing = ids.filter(id => _ans[id] == null);
+    if (missing.length) { alert('Te faltan ' + missing.length + ' preguntas por responder.'); return; }
+    const r = computeProfile(_ans);
+    r.answers = _ans; r.fecha = todayISO();
+    ls(K_PERFIL, r);
+    renderPerfil();
+    const host = document.getElementById('inv-perfil'); if (host) host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  window.invReset = function () { try { localStorage.removeItem(K_PERFIL); } catch (e) {} _ans = {}; renderPerfil(); };
+
+  function placeholder(id, emoji, titulo, paso) {
+    const el = document.getElementById(id); if (!el) return;
+    el.innerHTML = '<div class="card"><p style="text-align:center;color:var(--text-mut);padding:30px 14px;line-height:1.6">' + emoji + ' <strong>' + esc(titulo) + '</strong><br>En construcción — ' + esc(paso) + ' de la Fase 6.</p></div>';
+  }
+
+  window.invShowTab = function (tab) {
+    document.querySelectorAll('.inv-subtab').forEach(b => b.classList.toggle('active', b.dataset.inv === tab));
+    document.querySelectorAll('.inv-subview').forEach(v => v.classList.remove('active'));
+    const view = document.getElementById('inv-' + tab); if (view) view.classList.add('active');
+  };
+  window.invRender = function () {
+    renderPerfil();
+    placeholder('inv-catalogo', '📊', 'Catálogo de activos', 'Paso 2');
+    placeholder('inv-calculadora', '🧮', 'Calculadora "si hubieras invertido"', 'Paso 3');
+    placeholder('inv-reparto', '🥧', 'Reparto por perfil', 'Paso 4');
+  };
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const sec = document.getElementById('inversion-section');
+    if (sec && sec.classList.contains('active')) window.invRender();
   });
 })();
 </script>
