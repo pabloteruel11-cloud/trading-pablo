@@ -1363,6 +1363,46 @@
   .inv-result-badge.mod  { background: rgba(251,191,36,0.12); color: var(--acc-yellow); border: 1px solid rgba(251,191,36,0.3); }
   .inv-result-badge.arr  { background: rgba(239,83,80,0.12); color: var(--acc-red); border: 1px solid rgba(239,83,80,0.3); }
   .inv-warn { background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.28); border-radius: 10px; padding: 12px 14px; font-size: 0.82rem; color: var(--acc-yellow); margin: 12px 0; text-align: left; line-height: 1.5; }
+
+  /* Catálogo (Paso 3) */
+  .inv-cat-intro { font-size: 0.82rem; color: var(--text-sec); line-height: 1.6; margin-bottom: 14px; }
+  .inv-search { width: 100%; background: var(--bg-card2); border: 1px solid var(--border); border-radius: 10px; color: var(--text-pri); font-size: 0.9rem; padding: 11px 14px; font-family: inherit; margin-bottom: 12px; }
+  .inv-search:focus { outline: none; border-color: var(--acc-blue); }
+  .inv-chips { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 20px; }
+  .inv-chip { background: var(--bg-card2); border: 1px solid var(--border); color: var(--text-sec); font-size: 0.78rem; font-weight: 600; padding: 7px 12px; border-radius: 999px; cursor: pointer; transition: all 0.15s; user-select: none; }
+  .inv-chip:hover { border-color: var(--border-hov); color: var(--text-pri); }
+  .inv-chip.on { background: rgba(59,130,246,0.12); border-color: var(--acc-blue); color: var(--acc-blue); }
+  .inv-cat-group { margin-bottom: 22px; }
+  .inv-cat-h { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-mut); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .inv-cat-h span { background: var(--bg-card2); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; font-size: 0.72rem; }
+  .inv-asset { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 9px; overflow: hidden; transition: border-color 0.15s; }
+  .inv-asset.open { border-color: var(--border-hov); }
+  .inv-asset-head { display: flex; align-items: center; gap: 11px; padding: 13px 15px; cursor: pointer; }
+  .inv-asset-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .inv-asset-name { font-weight: 700; font-size: 0.9rem; color: var(--text-pri); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .inv-asset-sub { font-size: 0.74rem; color: var(--text-mut); }
+  .inv-sri { flex-shrink: 0; width: 24px; height: 24px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; }
+  .inv-sri.r-low { background: rgba(22,163,74,0.15); color: var(--acc-green); }
+  .inv-sri.r-mid { background: rgba(251,191,36,0.15); color: var(--acc-yellow); }
+  .inv-sri.r-hi  { background: rgba(249,115,22,0.15); color: #fb923c; }
+  .inv-sri.r-max { background: rgba(239,83,80,0.15); color: var(--acc-red); }
+  .inv-chev { flex-shrink: 0; color: var(--text-mut); font-size: 0.7rem; }
+  .inv-asset-body { padding: 4px 15px 16px; border-top: 1px solid var(--border); }
+  .inv-chart { width: 100%; height: 150px; display: block; margin: 14px 0 6px; }
+  .inv-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .inv-stat { background: var(--bg-card2); border: 1px solid var(--border); border-radius: 9px; padding: 8px 10px; text-align: center; }
+  .inv-stat-l { font-size: 0.62rem; color: var(--text-mut); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
+  .inv-stat-v { font-size: 0.9rem; font-weight: 800; }
+  .inv-years { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+  .inv-yr { font-size: 0.68rem; font-weight: 600; padding: 3px 7px; border-radius: 6px; }
+  .inv-yr.pos { background: rgba(22,163,74,0.1); color: var(--acc-green); }
+  .inv-yr.neg { background: rgba(239,83,80,0.1); color: var(--acc-red); }
+  .inv-desc { font-size: 0.84rem; color: var(--text-sec); line-height: 1.65; margin: 0 0 10px; }
+  .inv-note { font-size: 0.76rem; color: var(--text-mut); line-height: 1.55; background: var(--bg-card2); border-radius: 8px; padding: 9px 11px; margin: 0 0 10px; }
+  .inv-prep { font-size: 0.82rem; color: var(--text-sec); line-height: 1.6; background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.2); border-radius: 10px; padding: 12px 14px; margin: 12px 0; }
+  .inv-src { display: inline-block; font-size: 0.75rem; color: var(--acc-blue); text-decoration: none; margin-bottom: 8px; word-break: break-word; }
+  .inv-src:hover { text-decoration: underline; }
+  .inv-warn-sm { font-size: 0.7rem; color: var(--text-mut); font-style: italic; margin: 0; }
 </style>
 
 <!-- ────────────────────────── MOTOR ────────────────────────── -->
@@ -2203,6 +2243,136 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
   };
   window.invReset = function () { try { localStorage.removeItem(K_PERFIL); } catch (e) {} _ans = {}; renderPerfil(); };
 
+  // ══════════════════ CATÁLOGO (Paso 3) ══════════════════
+  let _catState = { cat: 'todos', q: '', open: null };
+
+  function _eur(v) { return Math.round(v).toLocaleString('es-ES') + ' €'; }
+  function _pct(r) { const d = (r >= 100 || r <= -100) ? 0 : 1; return (r >= 0 ? '+' : '') + r.toFixed(d) + '%'; }
+  function _cagr(serie) { let v = 1; serie.forEach(s => v *= (1 + s.r / 100)); return (Math.pow(v, 1 / serie.length) - 1) * 100; }
+  function _finalV(serie) { let v = 1000; serie.forEach(s => v *= (1 + s.r / 100)); return v; }
+  function _sriCls(sri) { return sri <= 2 ? 'r-low' : sri <= 4 ? 'r-mid' : sri <= 5 ? 'r-hi' : 'r-max'; }
+
+  // Mini-gráfico de crecimiento (curva de 1.000€ capitalizando las rentab. anuales). Canvas propio (no forex).
+  function invDrawGrowth(canvas, serie) {
+    if (!canvas || !serie || !serie.length) return;
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.clientWidth || 300, cssH = canvas.clientHeight || 150;
+    canvas.width = Math.round(cssW * dpr); canvas.height = Math.round(cssH * dpr);
+    const ctx = canvas.getContext('2d'); ctx.scale(dpr, dpr);
+    const W = cssW, H = cssH, base = 1000;
+    const pts = [{ year: serie[0].anio - 1, v: base }];
+    let v = base; serie.forEach(s => { v *= (1 + s.r / 100); pts.push({ year: s.anio, v: v }); });
+    let lo = base, hi = base; pts.forEach(p => { if (p.v < lo) lo = p.v; if (p.v > hi) hi = p.v; });
+    const pad = { t: 10, r: 10, b: 18, l: 48 };
+    const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+    const m = (hi - lo) * 0.08 || 1; lo -= m; hi += m; const rg = (hi - lo) || 1;
+    const toX = i => pad.l + (i / (pts.length - 1)) * cw;
+    const toY = val => pad.t + ch - ((val - lo) / rg) * ch;
+    ctx.clearRect(0, 0, W, H);
+    ctx.font = '9px system-ui,Arial'; ctx.textBaseline = 'middle';
+    for (let i = 0; i <= 3; i++) {
+      const val = lo + rg * (i / 3), y = toY(val);
+      ctx.strokeStyle = 'rgba(148,163,184,0.10)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+      ctx.fillStyle = '#64748b'; ctx.textAlign = 'right'; ctx.fillText(Math.round(val).toLocaleString('es-ES'), pad.l - 5, y);
+    }
+    const yB = toY(base);
+    ctx.setLineDash([3, 3]); ctx.strokeStyle = 'rgba(148,163,184,0.45)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad.l, yB); ctx.lineTo(W - pad.r, yB); ctx.stroke(); ctx.setLineDash([]);
+    const up = pts[pts.length - 1].v >= base, col = up ? '#16a34a' : '#ef4444';
+    ctx.beginPath(); pts.forEach((p, i) => { const x = toX(i), y = toY(p.v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.lineTo(toX(pts.length - 1), pad.t + ch); ctx.lineTo(toX(0), pad.t + ch); ctx.closePath();
+    const g = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
+    g.addColorStop(0, up ? 'rgba(22,163,74,0.26)' : 'rgba(239,68,68,0.26)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.fill();
+    ctx.beginPath(); pts.forEach((p, i) => { const x = toX(i), y = toY(p.v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+    ctx.fillStyle = '#64748b'; ctx.textBaseline = 'top';
+    ctx.textAlign = 'left'; ctx.fillText(pts[0].year, pad.l, H - pad.b + 4);
+    ctx.textAlign = 'right'; ctx.fillText(pts[pts.length - 1].year, W - pad.r, H - pad.b + 4);
+  }
+
+  function _assetCard(a) {
+    const open = _catState.open === a.id;
+    const curado = a.status === 'curado' && a.serie && a.serie.length;
+    const cagr = curado ? _cagr(a.serie) : 0;
+    let sub = esc(a.ticker || '') + ' · ' + esc(a.moneda);
+    if (curado) sub += ' · <span class="' + (cagr >= 0 ? 'reg-pos' : 'reg-neg') + '">' + _pct(cagr) + '/año</span>';
+    else sub += ' · <span style="color:var(--acc-yellow)">datos en preparación</span>';
+    let h = '<div class="inv-asset' + (open ? ' open' : '') + '">';
+    h += '<div class="inv-asset-head" onclick="invCatToggle(\'' + a.id + '\')">';
+    h += '<div class="inv-asset-main"><span class="inv-asset-name">' + esc(a.nombre) + '</span><span class="inv-asset-sub">' + sub + '</span></div>';
+    h += '<span class="inv-sri ' + _sriCls(a.sri) + '" title="Riesgo ' + a.sri + ' de 7">' + a.sri + '</span>';
+    h += '<span class="inv-chev">' + (open ? '▲' : '▼') + '</span></div>';
+    if (open) {
+      h += '<div class="inv-asset-body">';
+      if (curado) {
+        h += '<canvas id="cv-' + a.id + '" class="inv-chart" height="150"></canvas>';
+        const fv = _finalV(a.serie);
+        const best = a.serie.reduce((mx, s) => s.r > mx.r ? s : mx);
+        const worst = a.serie.reduce((mn, s) => s.r < mn.r ? s : mn);
+        h += '<div class="inv-stats">';
+        h += '<div class="inv-stat"><div class="inv-stat-l">1.000 € →</div><div class="inv-stat-v ' + (fv >= 1000 ? 'reg-pos' : 'reg-neg') + '">' + _eur(fv) + '</div></div>';
+        h += '<div class="inv-stat"><div class="inv-stat-l">Media/año</div><div class="inv-stat-v ' + (cagr >= 0 ? 'reg-pos' : 'reg-neg') + '">' + _pct(cagr) + '</div></div>';
+        h += '<div class="inv-stat"><div class="inv-stat-l">Mejor ' + best.anio + '</div><div class="inv-stat-v reg-pos">' + _pct(best.r) + '</div></div>';
+        h += '<div class="inv-stat"><div class="inv-stat-l">Peor ' + worst.anio + '</div><div class="inv-stat-v reg-neg">' + _pct(worst.r) + '</div></div>';
+        h += '</div>';
+        h += '<div class="inv-years">';
+        a.serie.forEach(s => { h += '<span class="inv-yr ' + (s.r >= 0 ? 'pos' : 'neg') + '">' + s.anio + ' ' + _pct(s.r) + '</span>'; });
+        h += '</div>';
+      } else {
+        h += '<div class="inv-prep">📊 <strong>Datos en preparación.</strong> ' + esc(a.nota || '') + '</div>';
+      }
+      h += '<p class="inv-desc">' + esc(a.descripcion) + '</p>';
+      if (curado && a.nota) h += '<p class="inv-note">ℹ️ ' + esc(a.nota) + '</p>';
+      if (a.fuenteUrl) h += '<a class="inv-src" href="' + esc(a.fuenteUrl) + '" target="_blank" rel="noopener">Fuente: ' + esc(a.fuente || 'ver') + ' ↗</a>';
+      h += '<p class="inv-warn-sm">Contenido educativo, no es recomendación. Rentabilidades pasadas no garantizan rentabilidades futuras.</p>';
+      h += '</div>';
+    }
+    h += '</div>';
+    return h;
+  }
+
+  function renderCatalogo() {
+    const host = document.getElementById('inv-catalogo'); if (!host) return;
+    const A = window.ACTIVOS;
+    if (!A || !A.activos) { host.innerHTML = '<div class="reg-empty">No se han podido cargar los activos.</div>'; return; }
+    const st = _catState;
+    const nCur = A.activos.filter(a => a.status === 'curado').length;
+    let h = '<div class="inv-cat-intro"><strong>' + A.activos.length + ' activos</strong> en ' + A.categorias.length + ' categorías (' + nCur + ' con histórico real). Toca uno para ver su gráfica y cuánto habrían sido 1.000 €.</div>';
+    h += '<input class="inv-search" type="text" placeholder="Buscar por nombre o ticker…" value="' + esc(st.q) + '" oninput="invCatSearch(this.value)">';
+    h += '<div class="inv-chips"><span class="inv-chip' + (st.cat === 'todos' ? ' on' : '') + '" onclick="invCatFilter(\'todos\')">🗂️ Todos</span>';
+    A.categorias.forEach(c => { h += '<span class="inv-chip' + (st.cat === c.id ? ' on' : '') + '" onclick="invCatFilter(\'' + c.id + '\')">' + c.emoji + ' ' + esc(c.nombre) + '</span>'; });
+    h += '</div>';
+    const q = st.q.trim().toLowerCase();
+    let total = 0;
+    A.categorias.forEach(c => {
+      if (st.cat !== 'todos' && st.cat !== c.id) return;
+      let items = A.activos.filter(a => a.categoria === c.id);
+      if (q) items = items.filter(a => (a.nombre + ' ' + (a.ticker || '')).toLowerCase().indexOf(q) >= 0);
+      if (!items.length) return;
+      total += items.length;
+      h += '<div class="inv-cat-group"><div class="inv-cat-h">' + c.emoji + ' ' + esc(c.nombre) + ' <span>' + items.length + '</span></div>';
+      items.forEach(a => { h += _assetCard(a); });
+      h += '</div>';
+    });
+    if (!total) h += '<div class="reg-empty">No hay activos que coincidan con la búsqueda.</div>';
+    host.innerHTML = h;
+    if (st.open) { const a = A.activos.find(x => x.id === st.open); if (a && a.serie && a.serie.length) { const cv = document.getElementById('cv-' + a.id); if (cv) invDrawGrowth(cv, a.serie); } }
+  }
+
+  window.invCatToggle = function (id) {
+    _catState.open = (_catState.open === id ? null : id);
+    renderCatalogo();
+    if (_catState.open) { const el = document.querySelector('.inv-asset.open'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+  };
+  window.invCatFilter = function (cat) { _catState.cat = cat; _catState.open = null; renderCatalogo(); };
+  window.invCatSearch = function (val) {
+    _catState.q = val; renderCatalogo();
+    const inp = document.querySelector('.inv-search');
+    if (inp) { inp.focus(); const n = inp.value.length; try { inp.setSelectionRange(n, n); } catch (e) {} }
+  };
+
   function placeholder(id, emoji, titulo, paso) {
     const el = document.getElementById(id); if (!el) return;
     el.innerHTML = '<div class="card"><p style="text-align:center;color:var(--text-mut);padding:30px 14px;line-height:1.6">' + emoji + ' <strong>' + esc(titulo) + '</strong><br>En construcción — ' + esc(paso) + ' de la Fase 6.</p></div>';
@@ -2215,9 +2385,9 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
   };
   window.invRender = function () {
     renderPerfil();
-    placeholder('inv-catalogo', '📊', 'Catálogo de activos', 'Paso 2');
-    placeholder('inv-calculadora', '🧮', 'Calculadora "si hubieras invertido"', 'Paso 3');
-    placeholder('inv-reparto', '🥧', 'Reparto por perfil', 'Paso 4');
+    renderCatalogo();
+    placeholder('inv-calculadora', '🧮', 'Calculadora "si hubieras invertido"', 'Paso 4');
+    placeholder('inv-reparto', '🥧', 'Reparto por perfil', 'Paso 5');
   };
 
   document.addEventListener('DOMContentLoaded', function () {
