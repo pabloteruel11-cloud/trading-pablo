@@ -324,6 +324,26 @@ window.ACTIVOS = {
       nota: 'Variación anual del precio en USD (companiesmarketcap); cotiza en EUR (Euronext París) y reparte buen dividendo aparte, así que para un inversor en euros la cifra real varía por tipo de cambio y dividendos.',
       fuente: 'TotalEnergies — histórico de cotización (companiesmarketcap)', fuenteUrl: 'https://companiesmarketcap.com/totalenergies/stock-price-history/', fechaConsulta: '2026-06-24', status: 'curado' },
 
+    // — Acciones de DIVIDENDO MENSUAL (REITs / BDC). Reparten renta cada mes; crecen poco a poco, no como una tecnológica —
+    { id: 'realty-income', nombre: 'Realty Income (O)', categoria: 'acciones', isin: null, ticker: 'O', moneda: 'USD', sri: 4,
+      descripcion: 'El "REIT del dividendo mensual" por excelencia: una inmobiliaria de EE. UU. con miles de locales alquilados a grandes cadenas. Paga TODOS los meses y ha subido el dividendo 32 años seguidos (aristócrata del dividendo). Crecimiento lento pero muy fiable.',
+      returnType: 'price_return_anual_pct',
+      serie: [ { anio: 2014, r: 27.81 }, { anio: 2015, r: 8.22 }, { anio: 2016, r: 11.33 }, { anio: 2017, r: -0.80 }, { anio: 2018, r: 10.56 }, { anio: 2019, r: 16.80 }, { anio: 2020, r: -15.56 }, { anio: 2021, r: 45.18 }, { anio: 2022, r: -11.40 }, { anio: 2023, r: -9.48 }, { anio: 2024, r: -6.98 } ],
+      nota: 'Rentabilidad de PRECIO (sin dividendos), USD. ENCIMA paga ~5,4%/año de dividendo MENSUAL (clave de esta acción). Sensible a los tipos de interés (por eso 2022-2024 en negativo). El +45% de 2021 incluye el efecto de la fusión con VEREIT.',
+      fuente: 'Realty Income (O) — rentabilidades anuales (1stock1)', fuenteUrl: 'https://www.1stock1.com/1stock1_1193.htm', fechaConsulta: '2026-06-24', status: 'curado' },
+    { id: 'main-street', nombre: 'Main Street Capital (MAIN)', categoria: 'acciones', isin: null, ticker: 'MAIN', moneda: 'USD', sri: 6,
+      descripcion: 'BDC de EE. UU.: presta dinero y entra en el capital de medianas empresas. Reparte dividendo MENSUAL alto (~7,9%) MÁS dividendos extra, y nunca ha recortado su dividendo mensual desde 2007. Crece su valor (NAV) cada año, pero es más cíclica y arriesgada que un REIT.',
+      returnType: 'total_return_anual_pct',
+      serie: [ { anio: 2014, r: -1.73 }, { anio: 2015, r: 7.62 }, { anio: 2016, r: 36.98 }, { anio: 2017, r: 16.14 }, { anio: 2018, r: -8.66 }, { anio: 2019, r: 35.44 }, { anio: 2020, r: -19.87 }, { anio: 2021, r: 51.65 }, { anio: 2022, r: -10.88 }, { anio: 2023, r: 28.36 }, { anio: 2024, r: 46.56 } ],
+      nota: 'Rentabilidad anual en USD que incluye en buena parte los dividendos (verificada contra fuentes de rentabilidad total: 2023 ≈ +28%, 2024 ≈ +47%). Dividendo MENSUAL ~7,9% + extras. Más riesgo: es una financiera de crédito (BDC), golpeada en 2020.',
+      fuente: 'Main Street Capital (MAIN) — histórico de cotización (companiesmarketcap)', fuenteUrl: 'https://companiesmarketcap.com/main-street-capital/stock-price-history/', fechaConsulta: '2026-06-24', status: 'curado' },
+    { id: 'agree-realty', nombre: 'Agree Realty (ADC)', categoria: 'acciones', isin: null, ticker: 'ADC', moneda: 'USD', sri: 5,
+      descripcion: 'REIT minorista de EE. UU. EN CRECIMIENTO: compra locales alquilados a grandes cadenas solventes (más de 2.600 propiedades) y amplía su cartera año a año. Paga dividendo MENSUAL (~4,2%) y lo sube cada año. La que mejor combina crecimiento + dividendo mensual.',
+      returnType: 'total_return_anual_pct',
+      serie: [ { anio: 2014, r: 14.34 }, { anio: 2015, r: 14.59 }, { anio: 2016, r: 44.22 }, { anio: 2017, r: 16.02 }, { anio: 2018, r: 19.77 }, { anio: 2019, r: 25.92 }, { anio: 2020, r: 2.26 }, { anio: 2021, r: 14.09 }, { anio: 2022, r: 4.37 }, { anio: 2023, r: -6.61 }, { anio: 2024, r: 16.16 } ],
+      nota: 'Rentabilidad anual en USD que incluye en buena parte los dividendos (2023 ≈ -6,6% concuerda con la rentabilidad total). Dividendo MENSUAL ~4,2% creciente. Sensible a los tipos (peor año, 2023).',
+      fuente: 'Agree Realty (ADC) — histórico de cotización (companiesmarketcap)', fuenteUrl: 'https://companiesmarketcap.com/agree-realty/stock-price-history/', fechaConsulta: '2026-06-24', status: 'curado' },
+
     // ═══════════════════════ BONOS ═══════════════════════
     {
       id: 'bonos-euro', nombre: 'Bonos del Estado en euros', categoria: 'bonos', isin: 'IE00B4WXJJ64', ticker: 'IEGA', moneda: 'EUR', sri: 3,
