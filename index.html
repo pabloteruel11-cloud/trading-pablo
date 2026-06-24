@@ -1403,6 +1403,14 @@
   .inv-src { display: inline-block; font-size: 0.75rem; color: var(--acc-blue); text-decoration: none; margin-bottom: 8px; word-break: break-word; }
   .inv-src:hover { text-decoration: underline; }
   .inv-warn-sm { font-size: 0.7rem; color: var(--text-mut); font-style: italic; margin: 0; }
+
+  /* Reparto (Paso 5) */
+  .rep-legend { display: flex; flex-direction: column; gap: 9px; }
+  .rep-leg { display: flex; align-items: center; gap: 9px; font-size: 0.85rem; }
+  .rep-dot { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; display: inline-block; }
+  .rep-leg-name { color: var(--text-pri); }
+  .rep-leg-pct { margin-left: auto; font-weight: 800; color: var(--text-sec); }
+  .rep-leg-eur { color: var(--text-mut); min-width: 66px; text-align: right; }
 </style>
 
 <!-- ────────────────────────── MOTOR ────────────────────────── -->
@@ -2494,6 +2502,76 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
     else if (field === 'year') { _calcState.year = parseInt(val, 10); renderCalcResult(); }
   };
 
+  // ══════════════════ REPARTO POR PERFIL (Paso 5) ══════════════════
+  let _repState = { amount: 1000 };
+  const _CATCOL = { indices: '#60a5fa', etfs: '#34d399', acciones: '#a78bfa', bonos: '#94a3b8', oro: '#fbbf24', cripto: '#f472b6', cuenta: '#38bdf8' };
+  function _catColor(id) { return _CATCOL[id] || '#64748b'; }
+
+  function invDrawDonut(canvas, slices) {
+    if (!canvas || !slices || !slices.length) return;
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.clientWidth || 190, cssH = canvas.clientHeight || 190;
+    canvas.width = Math.round(cssW * dpr); canvas.height = Math.round(cssH * dpr);
+    const ctx = canvas.getContext('2d'); ctx.scale(dpr, dpr);
+    const W = cssW, H = cssH, cx = W / 2, cy = H / 2;
+    const R = Math.min(W, H) / 2 - 4, th = R * 0.42, mid = R - th / 2;
+    ctx.clearRect(0, 0, W, H); ctx.lineCap = 'butt';
+    let a0 = -Math.PI / 2;
+    slices.forEach(s => {
+      const a1 = a0 + (s.pct / 100) * Math.PI * 2;
+      ctx.beginPath(); ctx.arc(cx, cy, mid, a0, a1); ctx.strokeStyle = s.color; ctx.lineWidth = th; ctx.stroke();
+      a0 = a1;
+    });
+  }
+
+  function renderReparto() {
+    const host = document.getElementById('inv-reparto'); if (!host) return;
+    const A = window.ACTIVOS; if (!A || !A.activos) { host.innerHTML = '<div class="reg-empty">No se han podido cargar los activos.</div>'; return; }
+    const r = lg('nucleo_inversion_perfil', null);
+    if (!r || !r.perfil) {
+      host.innerHTML = '<div class="card" style="text-align:center;padding:28px 18px">'
+        + '<p style="font-size:2rem;margin:0 0 8px">🧭</p>'
+        + '<p class="inv-desc" style="text-align:center;margin:0 0 4px">Para ver tu <strong>reparto recomendado</strong>, primero haz el test de perfil de inversor. Solo lleva un minuto.</p>'
+        + '<button class="reg-btn" style="margin-top:12px" onclick="invShowTab(\'perfil\')">Ir al test de perfil →</button>'
+        + '</div>';
+      return;
+    }
+    const nombre = r.perfil;
+    const mix = (A.repartoPorPerfil && A.repartoPorPerfil[nombre]) || [];
+    const amount = Math.max(0, parseFloat(_repState.amount) || 0);
+    const slices = mix.map(m => { const c = A.categorias.find(x => x.id === m.categoria) || {}; return { id: m.categoria, label: c.nombre || m.categoria, emoji: c.emoji || '', pct: m.pct, color: _catColor(m.categoria) }; });
+    let h = '<div class="inv-cat-intro">Según tu test, tu perfil es el de abajo. Este es un <strong>reparto orientativo</strong> de tus aportaciones por tipo de activo — propuesta educativa, no recomendación.</div>';
+    h += '<div class="card" style="text-align:center;padding:18px;margin-bottom:18px">';
+    h += '<div class="inv-result-badge ' + r.cls + '">' + esc(nombre) + '</div>';
+    h += '<p style="font-size:0.78rem;color:var(--text-mut);margin:10px 0 0">Puntuación ' + r.score + '/100 · riesgo objetivo SRI ' + esc(r.sri) + '</p>';
+    h += '</div>';
+    h += '<div class="reg-form" style="margin-bottom:18px"><div class="reg-field full"><label>¿Cuánto quieres repartir? (€)</label><input id="rep-amt" type="number" min="1" step="any" value="' + esc(_repState.amount) + '" oninput="invRepSet(this.value)"></div></div>';
+    h += '<div class="card"><canvas id="cv-donut" style="width:190px;height:190px;display:block;margin:6px auto 16px"></canvas><div class="rep-legend">';
+    slices.forEach(s => { h += '<div class="rep-leg"><span class="rep-dot" style="background:' + s.color + '"></span><span class="rep-leg-name">' + s.emoji + ' ' + esc(s.label) + '</span><span class="rep-leg-pct">' + s.pct + '%</span><span class="rep-leg-eur">' + _eur(amount * s.pct / 100) + '</span></div>'; });
+    h += '</div></div>';
+    h += '<div style="margin-top:20px">';
+    slices.forEach(s => {
+      const eur = amount * s.pct / 100;
+      const ex = _curated().filter(a => a.categoria === s.id).slice(0, 3);
+      h += '<div class="inv-cat-group"><div class="inv-cat-h"><span class="rep-dot" style="background:' + s.color + '"></span>' + s.emoji + ' ' + esc(s.label) + ' — ' + s.pct + '% · ' + _eur(eur) + '</div>';
+      if (ex.length) {
+        const per = eur / ex.length;
+        ex.forEach(a => { h += '<div class="inv-asset"><div class="inv-asset-head" style="cursor:default"><div class="inv-asset-main"><span class="inv-asset-name">' + esc(a.nombre) + '</span><span class="inv-asset-sub">' + esc(a.ticker || '') + ' · SRI ' + a.sri + '/7</span></div><span class="reg-pos" style="font-weight:800;font-size:0.86rem">' + _eur(per) + '</span></div></div>'; });
+        h += '<p class="inv-warn-sm" style="margin:5px 2px 0">Ejemplos del catálogo, repartido a partes iguales. Puedes elegir otros de la misma categoría.</p>';
+      } else { h += '<p class="inv-warn-sm">Sin ejemplos curados en esta categoría todavía.</p>'; }
+      h += '</div>';
+    });
+    h += '</div>';
+    h += '<div class="inv-disclaimer"><strong>Aviso:</strong> reparto orientativo con fines educativos, NO es asesoramiento ni recomendación de inversión. No tiene en cuenta toda tu situación. La decisión es tuya; si lo necesitas, consulta a un profesional.</div>';
+    host.innerHTML = h;
+    const cv = document.getElementById('cv-donut'); if (cv) invDrawDonut(cv, slices);
+  }
+
+  window.invRepSet = function (val) {
+    _repState.amount = val; renderReparto();
+    const i = document.getElementById('rep-amt'); if (i) { i.focus(); const n = i.value.length; try { i.setSelectionRange(n, n); } catch (e) {} }
+  };
+
   function placeholder(id, emoji, titulo, paso) {
     const el = document.getElementById(id); if (!el) return;
     el.innerHTML = '<div class="card"><p style="text-align:center;color:var(--text-mut);padding:30px 14px;line-height:1.6">' + emoji + ' <strong>' + esc(titulo) + '</strong><br>En construcción — ' + esc(paso) + ' de la Fase 6.</p></div>';
@@ -2505,12 +2583,13 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
     const view = document.getElementById('inv-' + tab); if (view) view.classList.add('active');
     if (tab === 'catalogo') renderCatalogo();
     else if (tab === 'calculadora') renderCalculadora();
+    else if (tab === 'reparto') renderReparto();
   };
   window.invRender = function () {
     renderPerfil();
     renderCatalogo();
     renderCalculadora();
-    placeholder('inv-reparto', '🥧', 'Reparto por perfil', 'Paso 5');
+    renderReparto();
   };
 
   document.addEventListener('DOMContentLoaded', function () {
