@@ -2373,6 +2373,127 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
     if (inp) { inp.focus(); const n = inp.value.length; try { inp.setSelectionRange(n, n); } catch (e) {} }
   };
 
+  // ══════════════════ CALCULADORA (Paso 4) ══════════════════
+  let _calcState = { asset: null, mode: 'lump', amount: 1000, year: null };
+  function _curated() { return window.ACTIVOS.activos.filter(a => a.status === 'curado' && a.serie && a.serie.length); }
+  function _assetById(id) { return window.ACTIVOS.activos.find(a => a.id === id); }
+  function _statBox(label, val, cls) { return '<div class="inv-stat"><div class="inv-stat-l">' + label + '</div><div class="inv-stat-v ' + (cls || '') + '">' + val + '</div></div>'; }
+
+  // Gráfico de la calculadora: valor (área verde/roja) vs invertido (línea gris discontinua).
+  function invDrawCalc(canvas, traj) {
+    if (!canvas || !traj || traj.length < 2) return;
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.clientWidth || 300, cssH = canvas.clientHeight || 160;
+    canvas.width = Math.round(cssW * dpr); canvas.height = Math.round(cssH * dpr);
+    const ctx = canvas.getContext('2d'); ctx.scale(dpr, dpr);
+    const W = cssW, H = cssH, n = traj.length;
+    let lo = Infinity, hi = -Infinity;
+    traj.forEach(p => { lo = Math.min(lo, p.value, p.invested); hi = Math.max(hi, p.value, p.invested); });
+    const pad = { t: 10, r: 10, b: 18, l: 56 };
+    const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+    const m = (hi - lo) * 0.08 || 1; lo -= m; hi += m; const rg = (hi - lo) || 1;
+    const toX = i => pad.l + (i / (n - 1)) * cw;
+    const toY = v => pad.t + ch - ((v - lo) / rg) * ch;
+    ctx.clearRect(0, 0, W, H);
+    ctx.font = '9px system-ui,Arial'; ctx.textBaseline = 'middle';
+    for (let i = 0; i <= 3; i++) {
+      const val = lo + rg * (i / 3), y = toY(val);
+      ctx.strokeStyle = 'rgba(148,163,184,0.10)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+      ctx.fillStyle = '#64748b'; ctx.textAlign = 'right'; ctx.fillText(Math.round(val).toLocaleString('es-ES'), pad.l - 5, y);
+    }
+    ctx.setLineDash([4, 3]); ctx.strokeStyle = 'rgba(148,163,184,0.55)'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); traj.forEach((p, i) => { const x = toX(i), y = toY(p.invested); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); ctx.setLineDash([]);
+    const finalV = traj[n - 1].value, inv = traj[n - 1].invested, up = finalV >= inv, col = up ? '#16a34a' : '#ef4444';
+    ctx.beginPath(); traj.forEach((p, i) => { const x = toX(i), y = toY(p.value); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.lineTo(toX(n - 1), pad.t + ch); ctx.lineTo(toX(0), pad.t + ch); ctx.closePath();
+    const g = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
+    g.addColorStop(0, up ? 'rgba(22,163,74,0.26)' : 'rgba(239,68,68,0.26)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.fill();
+    ctx.beginPath(); traj.forEach((p, i) => { const x = toX(i), y = toY(p.value); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+    ctx.fillStyle = '#64748b'; ctx.textBaseline = 'top';
+    ctx.textAlign = 'left'; ctx.fillText(traj[0].year, pad.l, H - pad.b + 4);
+    ctx.textAlign = 'right'; ctx.fillText(traj[n - 1].year, W - pad.r, H - pad.b + 4);
+  }
+
+  function renderCalculadora() {
+    const host = document.getElementById('inv-calculadora'); if (!host) return;
+    const A = window.ACTIVOS;
+    if (!A || !A.activos) { host.innerHTML = '<div class="reg-empty">No se han podido cargar los activos.</div>'; return; }
+    const cur = _curated();
+    if (!_calcState.asset || !_assetById(_calcState.asset) || _assetById(_calcState.asset).status !== 'curado') _calcState.asset = cur[0].id;
+    const a = _assetById(_calcState.asset);
+    const years = a.serie.map(s => s.anio);
+    if (_calcState.year == null || years.indexOf(_calcState.year) < 0) _calcState.year = years[0];
+    let h = '<div class="inv-cat-intro">Elige un activo, cuánto y desde qué año, y mira cuánto tendrías hoy con su rentabilidad <strong>real</strong>. Educativo; rentabilidades pasadas no garantizan futuras.</div>';
+    h += '<div class="reg-form">';
+    h += '<div class="reg-field full"><label>Activo</label><select onchange="invCalcSet(\'asset\',this.value)">';
+    A.categorias.forEach(c => { const items = cur.filter(x => x.categoria === c.id); if (!items.length) return; h += '<optgroup label="' + esc(c.emoji + ' ' + c.nombre) + '">'; items.forEach(x => { h += '<option value="' + x.id + '"' + (x.id === _calcState.asset ? ' selected' : '') + '>' + esc(x.nombre) + '</option>'; }); h += '</optgroup>'; });
+    h += '</select></div>';
+    h += '<div class="reg-field full"><label>Modo</label><div class="inv-chips">';
+    h += '<span class="inv-chip' + (_calcState.mode === 'lump' ? ' on' : '') + '" onclick="invCalcSet(\'mode\',\'lump\')">💰 Aporte único</span>';
+    h += '<span class="inv-chip' + (_calcState.mode === 'dca' ? ' on' : '') + '" onclick="invCalcSet(\'mode\',\'dca\')">📆 Aportación mensual</span>';
+    h += '</div></div>';
+    h += '<div class="reg-form-grid">';
+    h += '<div class="reg-field"><label>' + (_calcState.mode === 'lump' ? 'Importe inicial (€)' : 'Aportación al mes (€)') + '</label><input type="number" min="1" step="any" value="' + esc(_calcState.amount) + '" oninput="invCalcSet(\'amount\',this.value)"></div>';
+    h += '<div class="reg-field"><label>Desde el año</label><select onchange="invCalcSet(\'year\',this.value)">';
+    years.forEach(y => { h += '<option value="' + y + '"' + (y === _calcState.year ? ' selected' : '') + '>' + y + '</option>'; });
+    h += '</select></div>';
+    h += '</div></div>';
+    h += '<div id="calc-result"></div>';
+    host.innerHTML = h;
+    renderCalcResult();
+  }
+
+  function renderCalcResult() {
+    const host = document.getElementById('calc-result'); if (!host) return;
+    const a = _assetById(_calcState.asset); if (!a) return;
+    const amount = parseFloat(_calcState.amount) || 0;
+    const startY = _calcState.year;
+    const yrs = a.serie.filter(s => s.anio >= startY);
+    if (amount <= 0 || !yrs.length) { host.innerHTML = '<div class="reg-empty">Introduce un importe válido.</div>'; return; }
+    let traj = [];
+    if (_calcState.mode === 'lump') {
+      let v = amount; traj.push({ year: startY - 1, value: amount, invested: amount });
+      yrs.forEach(s => { v *= (1 + s.r / 100); traj.push({ year: s.anio, value: v, invested: amount }); });
+    } else {
+      const annual = amount * 12; let v = 0, inv = 0; traj.push({ year: startY - 1, value: 0, invested: 0 });
+      yrs.forEach(s => { v += annual; inv += annual; v *= (1 + s.r / 100); traj.push({ year: s.anio, value: v, invested: inv }); });
+    }
+    const last = traj[traj.length - 1];
+    const invested = last.invested, finalV = last.value, profit = finalV - invested;
+    const profitPct = invested ? profit / invested * 100 : 0, mult = invested ? finalV / invested : 0;
+    let h = '<div class="card" style="margin-top:4px">';
+    h += '<canvas id="cv-calc" class="inv-chart" height="160" style="height:160px"></canvas>';
+    h += '<div class="inv-stats">';
+    h += _statBox('Invertido', _eur(invested), '');
+    h += _statBox('Valor final', _eur(finalV), finalV >= invested ? 'reg-pos' : 'reg-neg');
+    h += _statBox('Ganancia', (profit >= 0 ? '+' : '') + _eur(profit), profit >= 0 ? 'reg-pos' : 'reg-neg');
+    h += _statBox('Rentab. total', _pct(profitPct), profitPct >= 0 ? 'reg-pos' : 'reg-neg');
+    h += '</div>';
+    let txt;
+    if (_calcState.mode === 'lump') txt = 'Si en <b>' + startY + '</b> hubieras invertido <b>' + _eur(amount) + '</b> en <b>' + esc(a.nombre) + '</b>, a cierre de <b>' + last.year + '</b> tendrías <b class="' + (finalV >= invested ? 'reg-pos' : 'reg-neg') + '">' + _eur(finalV) + '</b> — ' + mult.toFixed(1).replace('.', ',') + '× lo invertido.';
+    else txt = 'Aportando <b>' + _eur(amount) + ' al mes</b> en <b>' + esc(a.nombre) + '</b> desde <b>' + startY + '</b>, habrías puesto <b>' + _eur(invested) + '</b> en total y a cierre de <b>' + last.year + '</b> tendrías <b class="' + (finalV >= invested ? 'reg-pos' : 'reg-neg') + '">' + _eur(finalV) + '</b>.';
+    h += '<p class="inv-desc" style="margin-top:12px">' + txt + '</p>';
+    let nota = 'Cálculo con la rentabilidad anual real del activo (fuente: ' + esc(a.fuente || '—') + ').';
+    if (_calcState.mode === 'dca') nota += ' Aportaciones consideradas a principio de cada año (aproximación con datos anuales).';
+    if (a.returnType === 'price_return_anual_pct') nota += ' Esta serie es solo precio: si reparte dividendos, el resultado real sería algo mayor.';
+    nota += ' No incluye comisiones, impuestos ni inflación.';
+    h += '<p class="inv-note">ℹ️ ' + nota + '</p>';
+    h += '<p class="inv-warn-sm">Contenido educativo, no es recomendación. Rentabilidades pasadas no garantizan rentabilidades futuras.</p>';
+    h += '</div>';
+    host.innerHTML = h;
+    const cv = document.getElementById('cv-calc'); if (cv) invDrawCalc(cv, traj);
+  }
+
+  window.invCalcSet = function (field, val) {
+    if (field === 'asset') { _calcState.asset = val; _calcState.year = null; renderCalculadora(); }
+    else if (field === 'mode') { _calcState.mode = val; renderCalculadora(); }
+    else if (field === 'amount') { _calcState.amount = val; renderCalcResult(); }
+    else if (field === 'year') { _calcState.year = parseInt(val, 10); renderCalcResult(); }
+  };
+
   function placeholder(id, emoji, titulo, paso) {
     const el = document.getElementById(id); if (!el) return;
     el.innerHTML = '<div class="card"><p style="text-align:center;color:var(--text-mut);padding:30px 14px;line-height:1.6">' + emoji + ' <strong>' + esc(titulo) + '</strong><br>En construcción — ' + esc(paso) + ' de la Fase 6.</p></div>';
@@ -2382,11 +2503,13 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
     document.querySelectorAll('.inv-subtab').forEach(b => b.classList.toggle('active', b.dataset.inv === tab));
     document.querySelectorAll('.inv-subview').forEach(v => v.classList.remove('active'));
     const view = document.getElementById('inv-' + tab); if (view) view.classList.add('active');
+    if (tab === 'catalogo') renderCatalogo();
+    else if (tab === 'calculadora') renderCalculadora();
   };
   window.invRender = function () {
     renderPerfil();
     renderCatalogo();
-    placeholder('inv-calculadora', '🧮', 'Calculadora "si hubieras invertido"', 'Paso 4');
+    renderCalculadora();
     placeholder('inv-reparto', '🥧', 'Reparto por perfil', 'Paso 5');
   };
 
