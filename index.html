@@ -1411,6 +1411,31 @@
   .rep-leg-name { color: var(--text-pri); }
   .rep-leg-pct { margin-left: auto; font-weight: 800; color: var(--text-sec); }
   .rep-leg-eur { color: var(--text-mut); min-width: 66px; text-align: right; }
+
+  /* Ficha de activo ampliada */
+  .inv-info { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 6px; }
+  .inv-info-chip { font-size: 0.69rem; font-weight: 600; padding: 4px 9px; border-radius: 7px; background: var(--bg-card2); border: 1px solid var(--border); color: var(--text-sec); }
+  .inv-info-chip.risk-low { color: var(--acc-green); } .inv-info-chip.risk-mid { color: var(--acc-yellow); }
+  .inv-info-chip.risk-hi { color: #fb923c; } .inv-info-chip.risk-max { color: var(--acc-red); }
+  .inv-cht-tabs { display: flex; gap: 6px; margin: 14px 0 8px; }
+  .inv-cht-tab { flex: 1; text-align: center; font-size: 0.76rem; font-weight: 700; padding: 9px 6px; border-radius: 8px; background: var(--bg-card2); border: 1px solid var(--border); color: var(--text-sec); cursor: pointer; transition: all 0.15s; }
+  .inv-cht-tab:hover { color: var(--text-pri); }
+  .inv-cht-tab.on { background: rgba(59,130,246,0.12); border-color: var(--acc-blue); color: var(--acc-blue); }
+  .inv-rng { display: flex; gap: 5px; margin-bottom: 6px; flex-wrap: wrap; }
+  .inv-rng-chip { font-size: 0.7rem; font-weight: 600; padding: 4px 11px; border-radius: 999px; background: var(--bg-card2); border: 1px solid var(--border); color: var(--text-mut); cursor: pointer; transition: all 0.15s; }
+  .inv-rng-chip:hover { color: var(--text-pri); }
+  .inv-rng-chip.on { border-color: var(--acc-blue); color: var(--acc-blue); }
+  .inv-stat-yr { font-size: 0.6rem; color: var(--text-mut); font-weight: 600; }
+  .inv-cap { font-size: 0.72rem; color: var(--text-mut); line-height: 1.6; margin: 4px 0 12px; }
+  .inv-cap b { color: var(--text-sec); font-weight: 700; }
+  .inv-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr)); gap: 8px; margin: 4px 0 14px; }
+  .inv-metric { background: var(--bg-card2); border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px; }
+  .inv-metric-l { font-size: 0.62rem; color: var(--text-mut); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
+  .inv-metric-v { font-size: 0.85rem; font-weight: 700; color: var(--text-pri); }
+  .inv-mini-h { font-size: 0.82rem; font-weight: 800; color: var(--text-pri); margin: 18px 0 10px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 7px; }
+  .inv-calc-box { background: var(--bg-card2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+  .inv-calc-modes { display: flex; gap: 6px; margin-bottom: 12px; }
+  .inv-calc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
 </style>
 
 <!-- ────────────────────────── MOTOR ────────────────────────── -->
@@ -2252,7 +2277,7 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
   window.invReset = function () { try { localStorage.removeItem(K_PERFIL); } catch (e) {} _ans = {}; renderPerfil(); };
 
   // ══════════════════ CATÁLOGO (Paso 3) ══════════════════
-  let _catState = { cat: 'todos', q: '', open: null };
+  let _catState = { cat: 'todos', q: '', open: null, view: 'growth', range: 'max', dcalc: { amount: 1000, year: null, mode: 'lump' } };
 
   function _eur(v) { return Math.round(v).toLocaleString('es-ES') + ' €'; }
   function _pct(r) { const d = (r >= 100 || r <= -100) ? 0 : 1; return (r >= 0 ? '+' : '') + r.toFixed(d) + '%'; }
@@ -2300,6 +2325,163 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
     ctx.textAlign = 'right'; ctx.fillText(pts[pts.length - 1].year, W - pad.r, H - pad.b + 4);
   }
 
+  // ── helpers de la ficha ampliada ──
+  function _seriesForRange(serie, range) {
+    if (range === 'max') return serie;
+    const n = parseInt(range, 10);
+    if (!n || n >= serie.length) return serie;
+    return serie.slice(serie.length - n);
+  }
+  function _riskClass(s) { return s <= 2 ? 'risk-low' : s <= 4 ? 'risk-mid' : s <= 5 ? 'risk-hi' : 'risk-max'; }
+  function _riskLabel(s) { return s <= 1 ? 'Muy bajo' : s <= 2 ? 'Bajo' : s <= 3 ? 'Bajo-medio' : s <= 4 ? 'Medio' : s <= 5 ? 'Medio-alto' : s <= 6 ? 'Alto' : 'Muy alto'; }
+  function _retTypeLabel(a) { return a.returnType === 'price_return_anual_pct' ? '📈 Solo precio' : a.returnType === 'tipo_anual_pct' ? '🏦 Tipo de interés' : '📈 Con dividendos'; }
+  function _volat(serie) { const rs = serie.map(s => s.r); const mean = rs.reduce((x, y) => x + y, 0) / rs.length; const sd = Math.sqrt(rs.reduce((x, y) => x + (y - mean) * (y - mean), 0) / rs.length); return { sd: sd, lbl: sd < 8 ? 'Baja' : sd < 18 ? 'Media' : sd < 32 ? 'Alta' : 'Muy alta' }; }
+  function _metric(l, v) { return '<div class="inv-metric"><div class="inv-metric-l">' + l + '</div><div class="inv-metric-v">' + v + '</div></div>'; }
+
+  // Gráfico de BARRAS de rentabilidad por año (verde +, rojo −).
+  function invDrawBars(canvas, serie) {
+    if (!canvas || !serie || !serie.length) return;
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.clientWidth || 300, cssH = canvas.clientHeight || 160;
+    canvas.width = Math.round(cssW * dpr); canvas.height = Math.round(cssH * dpr);
+    const ctx = canvas.getContext('2d'); ctx.scale(dpr, dpr);
+    const W = cssW, H = cssH, n = serie.length;
+    let lo = 0, hi = 0; serie.forEach(s => { if (s.r < lo) lo = s.r; if (s.r > hi) hi = s.r; });
+    const pad = { t: 10, r: 8, b: 18, l: 42 };
+    const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+    const m = (hi - lo) * 0.12 || 1; const top = hi + m, bot = lo - m, rg = (top - bot) || 1;
+    const toY = v => pad.t + ch - ((v - bot) / rg) * ch;
+    ctx.clearRect(0, 0, W, H);
+    ctx.font = '9px system-ui,Arial'; ctx.textBaseline = 'middle';
+    const y0 = toY(0);
+    ctx.strokeStyle = 'rgba(148,163,184,0.10)'; ctx.lineWidth = 1;
+    [toY(hi), y0, toY(lo)].forEach(y => { ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke(); });
+    ctx.fillStyle = '#64748b'; ctx.textAlign = 'right';
+    ctx.fillText(Math.round(hi) + '%', pad.l - 4, toY(hi));
+    ctx.fillText('0', pad.l - 4, y0);
+    ctx.fillText(Math.round(lo) + '%', pad.l - 4, toY(lo));
+    const slot = cw / n, bw = Math.min(30, slot * 0.6);
+    serie.forEach((s, i) => {
+      const cx = pad.l + slot * i + slot / 2, yv = toY(s.r);
+      ctx.fillStyle = s.r >= 0 ? '#16a34a' : '#ef4444';
+      ctx.fillRect(cx - bw / 2, Math.min(yv, y0), bw, Math.max(1, Math.abs(yv - y0)));
+    });
+    ctx.fillStyle = '#64748b'; ctx.textBaseline = 'top'; ctx.textAlign = 'center';
+    const step = n > 8 ? Math.ceil(n / 6) : 1;
+    serie.forEach((s, i) => { if (i % step === 0 || i === n - 1) ctx.fillText("'" + String(s.anio).slice(2), pad.l + slot * i + slot / 2, H - pad.b + 4); });
+  }
+
+  function _drawOpen(a) {
+    if (!a || a.status !== 'curado' || !a.serie || !a.serie.length) return;
+    const cv = document.getElementById('cv-' + a.id); if (!cv) return;
+    const serie = _seriesForRange(a.serie, _catState.range);
+    if (_catState.view === 'bars') invDrawBars(cv, serie); else invDrawGrowth(cv, serie);
+  }
+  function _rerenderDetail(id) {
+    const a = _assetById(id), d = document.getElementById('det-' + id);
+    if (!a || !d) return;
+    d.innerHTML = _assetDetail(a); _drawOpen(a);
+  }
+
+  // Calculadora propia del activo (salida).
+  function _dcalcOut(a) {
+    const c = _catState.dcalc, amount = parseFloat(c.amount) || 0, startY = c.year;
+    const yrs = a.serie.filter(s => s.anio >= startY);
+    if (amount <= 0 || !yrs.length) return '<div class="reg-empty" style="padding:14px">Introduce un importe válido.</div>';
+    let traj = [];
+    if (c.mode === 'lump') { let v = amount; traj.push({ year: startY - 1, value: amount, invested: amount }); yrs.forEach(s => { v *= (1 + s.r / 100); traj.push({ year: s.anio, value: v, invested: amount }); }); }
+    else { const an = amount * 12; let v = 0, inv = 0; traj.push({ year: startY - 1, value: 0, invested: 0 }); yrs.forEach(s => { v += an; inv += an; v *= (1 + s.r / 100); traj.push({ year: s.anio, value: v, invested: inv }); }); }
+    const last = traj[traj.length - 1], invested = last.invested, fv = last.value, profit = fv - invested, ppct = invested ? profit / invested * 100 : 0, mult = invested ? fv / invested : 0;
+    let h = '<div class="inv-stats">';
+    h += _statBox('Invertido', _eur(invested), '');
+    h += _statBox('Valor final', _eur(fv), fv >= invested ? 'reg-pos' : 'reg-neg');
+    h += _statBox('Ganancia', (profit >= 0 ? '+' : '') + _eur(profit), profit >= 0 ? 'reg-pos' : 'reg-neg');
+    h += _statBox('Rentab.', _pct(ppct), ppct >= 0 ? 'reg-pos' : 'reg-neg');
+    h += '</div>';
+    const txt = c.mode === 'lump'
+      ? 'Con <b>' + _eur(amount) + '</b> en <b>' + startY + '</b>, a cierre de <b>' + last.year + '</b> tendrías <b class="' + (fv >= invested ? 'reg-pos' : 'reg-neg') + '">' + _eur(fv) + '</b> — ' + mult.toFixed(1).replace('.', ',') + '× lo invertido.'
+      : 'Con <b>' + _eur(amount) + '/mes</b> desde <b>' + startY + '</b> (en total <b>' + _eur(invested) + '</b>), a cierre de <b>' + last.year + '</b> tendrías <b class="' + (fv >= invested ? 'reg-pos' : 'reg-neg') + '">' + _eur(fv) + '</b>.';
+    h += '<p class="inv-cap" style="margin-top:8px">' + txt + '</p>';
+    return h;
+  }
+
+  // Detalle ampliado del activo (todo lo que se ve al desplegar).
+  function _assetDetail(a) {
+    const curado = a.status === 'curado' && a.serie && a.serie.length;
+    if (!curado) {
+      let h = '<div class="inv-prep">📊 <strong>Datos en preparación.</strong> ' + esc(a.nota || '') + '</div>';
+      h += '<p class="inv-desc">' + esc(a.descripcion) + '</p>';
+      if (a.fuenteUrl) h += '<a class="inv-src" href="' + esc(a.fuenteUrl) + '" target="_blank" rel="noopener">Fuente: ' + esc(a.fuente || 'ver') + ' ↗</a>';
+      h += '<p class="inv-warn-sm">Contenido educativo, no es recomendación.</p>';
+      return h;
+    }
+    const st = _catState, full = a.serie, serie = _seriesForRange(full, st.range);
+    const cat = window.ACTIVOS.categorias.find(c => c.id === a.categoria) || {};
+    // — chips de información —
+    let h = '<div class="inv-info">';
+    h += '<span class="inv-info-chip">' + (cat.emoji || '') + ' ' + esc(cat.nombre || a.categoria) + '</span>';
+    if (a.ticker) h += '<span class="inv-info-chip">🔖 ' + esc(a.ticker) + '</span>';
+    h += '<span class="inv-info-chip">💱 ' + esc(a.moneda) + '</span>';
+    h += '<span class="inv-info-chip ' + _riskClass(a.sri) + '">⚠ Riesgo ' + a.sri + '/7 · ' + _riskLabel(a.sri) + '</span>';
+    h += '<span class="inv-info-chip">' + _retTypeLabel(a) + '</span>';
+    if (a.isin) h += '<span class="inv-info-chip">ISIN ' + esc(a.isin) + '</span>';
+    h += '</div>';
+    // — selector de tipo de gráfico —
+    h += '<div class="inv-cht-tabs">';
+    h += '<span class="inv-cht-tab' + (st.view === 'growth' ? ' on' : '') + '" onclick="invCardView(\'' + a.id + '\',\'growth\')">📈 Crecimiento de 1.000 €</span>';
+    h += '<span class="inv-cht-tab' + (st.view === 'bars' ? ' on' : '') + '" onclick="invCardView(\'' + a.id + '\',\'bars\')">📊 Rentabilidad por año</span>';
+    h += '</div>';
+    // — selector de rango —
+    h += '<div class="inv-rng">';
+    const L = full.length, ranges = [['max', 'Máx']];
+    if (L > 10) ranges.push(['10', '10 años']); if (L > 5) ranges.push(['5', '5 años']); if (L > 3) ranges.push(['3', '3 años']);
+    ranges.forEach(r => { h += '<span class="inv-rng-chip' + (st.range === r[0] ? ' on' : '') + '" onclick="invCardRange(\'' + a.id + '\',\'' + r[0] + '\')">' + r[1] + '</span>'; });
+    h += '</div>';
+    h += '<canvas id="cv-' + a.id + '" class="inv-chart" height="160" style="height:160px"></canvas>';
+    // — 4 recuadros (según el rango elegido) —
+    const fv = _finalV(serie), cg = _cagr(serie);
+    const best = serie.reduce((mx, s) => s.r > mx.r ? s : mx), worst = serie.reduce((mn, s) => s.r < mn.r ? s : mn);
+    const y0 = serie[0].anio, y1 = serie[serie.length - 1].anio;
+    h += '<div class="inv-stats">';
+    h += '<div class="inv-stat"><div class="inv-stat-l">1.000 € se vuelven</div><div class="inv-stat-v ' + (fv >= 1000 ? 'reg-pos' : 'reg-neg') + '">' + _eur(fv) + '</div></div>';
+    h += '<div class="inv-stat"><div class="inv-stat-l">Media al año</div><div class="inv-stat-v ' + (cg >= 0 ? 'reg-pos' : 'reg-neg') + '">' + _pct(cg) + '</div></div>';
+    h += '<div class="inv-stat"><div class="inv-stat-l">Mejor año</div><div class="inv-stat-v reg-pos">' + _pct(best.r) + '<span class="inv-stat-yr"> ' + best.anio + '</span></div></div>';
+    h += '<div class="inv-stat"><div class="inv-stat-l">Peor año</div><div class="inv-stat-v reg-neg">' + _pct(worst.r) + '<span class="inv-stat-yr"> ' + worst.anio + '</span></div></div>';
+    h += '</div>';
+    // — explicación de los recuadros —
+    h += '<p class="inv-cap">Periodo <b>' + y0 + '–' + y1 + '</b> (' + serie.length + ' años). <b>«1.000 € se vuelven»</b>: en cuánto se convierten 1.000 € invertidos al principio. <b>«Media al año»</b>: cuánto sube de media cada año, con interés compuesto (no es la suma dividida). <b>«Mejor / Peor año»</b>: su año más alto y más bajo.</p>';
+    // — chips por año —
+    h += '<div class="inv-years">';
+    serie.forEach(s => { h += '<span class="inv-yr ' + (s.r >= 0 ? 'pos' : 'neg') + '">' + s.anio + ' ' + _pct(s.r) + '</span>'; });
+    h += '</div>';
+    // — métricas para entenderlo —
+    const pos = serie.filter(s => s.r >= 0).length, neg = serie.length - pos, vol = _volat(serie);
+    h += '<div class="inv-metrics">';
+    h += _metric('Años en positivo', pos + ' de ' + serie.length);
+    h += _metric('Años en negativo', String(neg));
+    h += _metric('Volatilidad', vol.lbl + ' (±' + vol.sd.toFixed(0) + '%)');
+    h += _metric('Mayor caída (1 año)', _pct(worst.r));
+    h += '</div>';
+    // — descripción y nota —
+    h += '<p class="inv-desc">' + esc(a.descripcion) + '</p>';
+    if (a.nota) h += '<p class="inv-note">ℹ️ ' + esc(a.nota) + '</p>';
+    // — calculadora propia del activo —
+    const c = _catState.dcalc;
+    h += '<div class="inv-mini-h">🧮 Calcula con este activo</div>';
+    h += '<div class="inv-calc-box">';
+    h += '<div class="inv-calc-modes"><span class="inv-chip' + (c.mode === 'lump' ? ' on' : '') + '" onclick="invDcalc(\'' + a.id + '\',\'mode\',\'lump\')">💰 Aporte único</span><span class="inv-chip' + (c.mode === 'dca' ? ' on' : '') + '" onclick="invDcalc(\'' + a.id + '\',\'mode\',\'dca\')">📆 Aportación mensual</span></div>';
+    h += '<div class="inv-calc-row"><div class="reg-field"><label>' + (c.mode === 'lump' ? 'Importe (€)' : 'Al mes (€)') + '</label><input id="dca-' + a.id + '" type="number" min="1" step="any" value="' + esc(c.amount) + '" oninput="invDcalc(\'' + a.id + '\',\'amount\',this.value)"></div>';
+    h += '<div class="reg-field"><label>Desde el año</label><select onchange="invDcalc(\'' + a.id + '\',\'year\',this.value)">';
+    full.forEach(s => { h += '<option value="' + s.anio + '"' + (s.anio === c.year ? ' selected' : '') + '>' + s.anio + '</option>'; });
+    h += '</select></div></div>';
+    h += '<div id="dco-' + a.id + '">' + _dcalcOut(a) + '</div>';
+    h += '</div>';
+    // — fuente y aviso —
+    if (a.fuenteUrl) h += '<a class="inv-src" href="' + esc(a.fuenteUrl) + '" target="_blank" rel="noopener">Fuente: ' + esc(a.fuente || 'ver') + ' ↗</a>';
+    h += '<p class="inv-warn-sm">Contenido educativo, no es recomendación. Rentabilidades pasadas no garantizan rentabilidades futuras.</p>';
+    return h;
+  }
+
   function _assetCard(a) {
     const open = _catState.open === a.id;
     const curado = a.status === 'curado' && a.serie && a.serie.length;
@@ -2312,31 +2494,7 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
     h += '<div class="inv-asset-main"><span class="inv-asset-name">' + esc(a.nombre) + '</span><span class="inv-asset-sub">' + sub + '</span></div>';
     h += '<span class="inv-sri ' + _sriCls(a.sri) + '" title="Riesgo ' + a.sri + ' de 7">' + a.sri + '</span>';
     h += '<span class="inv-chev">' + (open ? '▲' : '▼') + '</span></div>';
-    if (open) {
-      h += '<div class="inv-asset-body">';
-      if (curado) {
-        h += '<canvas id="cv-' + a.id + '" class="inv-chart" height="150"></canvas>';
-        const fv = _finalV(a.serie);
-        const best = a.serie.reduce((mx, s) => s.r > mx.r ? s : mx);
-        const worst = a.serie.reduce((mn, s) => s.r < mn.r ? s : mn);
-        h += '<div class="inv-stats">';
-        h += '<div class="inv-stat"><div class="inv-stat-l">1.000 € →</div><div class="inv-stat-v ' + (fv >= 1000 ? 'reg-pos' : 'reg-neg') + '">' + _eur(fv) + '</div></div>';
-        h += '<div class="inv-stat"><div class="inv-stat-l">Media/año</div><div class="inv-stat-v ' + (cagr >= 0 ? 'reg-pos' : 'reg-neg') + '">' + _pct(cagr) + '</div></div>';
-        h += '<div class="inv-stat"><div class="inv-stat-l">Mejor ' + best.anio + '</div><div class="inv-stat-v reg-pos">' + _pct(best.r) + '</div></div>';
-        h += '<div class="inv-stat"><div class="inv-stat-l">Peor ' + worst.anio + '</div><div class="inv-stat-v reg-neg">' + _pct(worst.r) + '</div></div>';
-        h += '</div>';
-        h += '<div class="inv-years">';
-        a.serie.forEach(s => { h += '<span class="inv-yr ' + (s.r >= 0 ? 'pos' : 'neg') + '">' + s.anio + ' ' + _pct(s.r) + '</span>'; });
-        h += '</div>';
-      } else {
-        h += '<div class="inv-prep">📊 <strong>Datos en preparación.</strong> ' + esc(a.nota || '') + '</div>';
-      }
-      h += '<p class="inv-desc">' + esc(a.descripcion) + '</p>';
-      if (curado && a.nota) h += '<p class="inv-note">ℹ️ ' + esc(a.nota) + '</p>';
-      if (a.fuenteUrl) h += '<a class="inv-src" href="' + esc(a.fuenteUrl) + '" target="_blank" rel="noopener">Fuente: ' + esc(a.fuente || 'ver') + ' ↗</a>';
-      h += '<p class="inv-warn-sm">Contenido educativo, no es recomendación. Rentabilidades pasadas no garantizan rentabilidades futuras.</p>';
-      h += '</div>';
-    }
+    if (open) h += '<div class="inv-asset-body" id="det-' + a.id + '">' + _assetDetail(a) + '</div>';
     h += '</div>';
     return h;
   }
@@ -2366,11 +2524,18 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
     });
     if (!total) h += '<div class="reg-empty">No hay activos que coincidan con la búsqueda.</div>';
     host.innerHTML = h;
-    if (st.open) { const a = A.activos.find(x => x.id === st.open); if (a && a.serie && a.serie.length) { const cv = document.getElementById('cv-' + a.id); if (cv) invDrawGrowth(cv, a.serie); } }
+    if (st.open) { const a = A.activos.find(x => x.id === st.open); if (a) _drawOpen(a); }
   }
 
   window.invCatToggle = function (id) {
-    _catState.open = (_catState.open === id ? null : id);
+    const opening = _catState.open !== id;
+    _catState.open = opening ? id : null;
+    if (opening) {
+      _catState.view = 'growth'; _catState.range = 'max';
+      const a = _assetById(id);
+      const y0 = (a && a.serie && a.serie.length) ? a.serie[0].anio : null;
+      _catState.dcalc = { amount: 1000, year: y0, mode: 'lump' };
+    }
     renderCatalogo();
     if (_catState.open) { const el = document.querySelector('.inv-asset.open'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
   };
@@ -2379,6 +2544,19 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
     _catState.q = val; renderCatalogo();
     const inp = document.querySelector('.inv-search');
     if (inp) { inp.focus(); const n = inp.value.length; try { inp.setSelectionRange(n, n); } catch (e) {} }
+  };
+  window.invCardView = function (id, v) { _catState.view = v; _rerenderDetail(id); };
+  window.invCardRange = function (id, r) { _catState.range = r; _rerenderDetail(id); };
+  window.invDcalc = function (id, field, val) {
+    if (field === 'amount') {
+      _catState.dcalc.amount = val;
+      const a = _assetById(id), o = document.getElementById('dco-' + id);
+      if (a && o) o.innerHTML = _dcalcOut(a);
+    } else {
+      if (field === 'year') _catState.dcalc.year = parseInt(val, 10);
+      else if (field === 'mode') _catState.dcalc.mode = val;
+      _rerenderDetail(id);
+    }
   };
 
   // ══════════════════ CALCULADORA (Paso 4) ══════════════════
