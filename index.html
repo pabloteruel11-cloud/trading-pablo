@@ -983,12 +983,14 @@
 
     <div class="inv-subtabs" role="tablist">
       <button class="inv-subtab active" data-inv="perfil"      onclick="invShowTab('perfil')">👤 Perfil</button>
+      <button class="inv-subtab"        data-inv="cartera"     onclick="invShowTab('cartera')">💼 Mi cartera</button>
       <button class="inv-subtab"        data-inv="catalogo"    onclick="invShowTab('catalogo')">📊 Catálogo</button>
       <button class="inv-subtab"        data-inv="calculadora" onclick="invShowTab('calculadora')">🧮 Calculadora</button>
       <button class="inv-subtab"        data-inv="reparto"     onclick="invShowTab('reparto')">🥧 Reparto</button>
     </div>
 
     <div id="inv-perfil"      class="inv-subview active"></div>
+    <div id="inv-cartera"     class="inv-subview"></div>
     <div id="inv-catalogo"    class="inv-subview"></div>
     <div id="inv-calculadora" class="inv-subview"></div>
     <div id="inv-reparto"     class="inv-subview"></div>
@@ -1439,6 +1441,19 @@
   .inv-count { background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(37,99,235,0.05)); border: 1px solid rgba(59,130,246,0.25); border-radius: 12px; padding: 12px 16px; margin-bottom: 10px; font-size: 0.83rem; color: var(--text-sec); display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   .inv-count-n { font-size: 1.5rem; font-weight: 800; color: var(--acc-blue); line-height: 1; }
   .inv-count b { color: var(--text-pri); font-weight: 700; }
+
+  /* Mi cartera (registro de inversiones) */
+  .car-list { display: flex; flex-direction: column; gap: 9px; }
+  .car-pos { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; }
+  .car-pos-top { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+  .car-pos-name { font-weight: 700; font-size: 0.9rem; color: var(--text-pri); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .car-pos-pl { font-weight: 800; font-size: 0.84rem; }
+  .car-pos-row { font-size: 0.8rem; color: var(--text-sec); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .car-pos-row b { color: var(--text-pri); font-weight: 700; }
+  .car-val-in { width: 92px; background: var(--bg-card2); border: 1px solid var(--border); border-radius: 7px; color: var(--text-pri); font-size: 0.82rem; padding: 5px 8px; font-family: inherit; }
+  .car-val-in:focus { outline: none; border-color: var(--acc-blue); }
+  .car-pos-fec { color: var(--text-mut); }
+  .car-pos-notas { font-size: 0.76rem; color: var(--text-mut); font-style: italic; margin-top: 6px; }
 </style>
 
 <!-- ────────────────────────── MOTOR ────────────────────────── -->
@@ -2761,6 +2776,102 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
     el.innerHTML = '<div class="card"><p style="text-align:center;color:var(--text-mut);padding:30px 14px;line-height:1.6">' + emoji + ' <strong>' + esc(titulo) + '</strong><br>En construcción — ' + esc(paso) + ' de la Fase 6.</p></div>';
   }
 
+  // ══════════════════ MI CARTERA (registro de inversiones reales) ══════════════════
+  const K_CART = 'nucleo_inversion_cartera';
+  function _carValor(p) {
+    return (p.valorActual !== null && p.valorActual !== undefined && p.valorActual !== '')
+      ? (parseFloat(p.valorActual) || 0) : (parseFloat(p.invertido) || 0);
+  }
+
+  function renderCartera() {
+    const host = document.getElementById('inv-cartera'); if (!host) return;
+    const A = window.ACTIVOS;
+    const pos = lg(K_CART, []);
+    let inv = 0, val = 0;
+    pos.forEach(p => { inv += (parseFloat(p.invertido) || 0); val += _carValor(p); });
+    const pl = val - inv, plpct = inv > 0 ? pl / inv * 100 : 0;
+
+    let h = '<div class="inv-cat-intro">Aquí registras lo que <b>compras de verdad</b>: cuánto inviertes en cada activo y, cuando quieras, su <b>valor actual</b> para ver tu ganancia o pérdida. (Cuando empieces en Trade Republic, el CSV podrá rellenar esto solo.)</div>';
+
+    h += '<div class="inv-stats" style="margin-bottom:18px">';
+    h += '<div class="inv-stat"><div class="inv-stat-l">Invertido</div><div class="inv-stat-v">' + _eur(inv) + '</div></div>';
+    h += '<div class="inv-stat"><div class="inv-stat-l">Valor actual</div><div class="inv-stat-v">' + _eur(val) + '</div></div>';
+    h += '<div class="inv-stat"><div class="inv-stat-l">Ganancia/Pérdida</div><div class="inv-stat-v ' + (pl >= 0 ? 'reg-pos' : 'reg-neg') + '">' + (pl >= 0 ? '+' : '') + _eur(pl) + '</div></div>';
+    h += '<div class="inv-stat"><div class="inv-stat-l">Rentabilidad</div><div class="inv-stat-v ' + (plpct >= 0 ? 'reg-pos' : 'reg-neg') + '">' + _pct(plpct) + '</div></div>';
+    h += '</div>';
+
+    h += '<div class="inv-mini-h" style="margin-top:6px">➕ Añadir una posición</div>';
+    h += '<div class="reg-form"><div class="reg-form-grid">';
+    h += '<div class="reg-field full"><label>Activo</label><input id="car-act" list="car-activos" placeholder="Ej. S&amp;P 500, Apple, Bitcoin…"><datalist id="car-activos">';
+    (A && A.activos ? A.activos : []).forEach(a => { h += '<option value="' + esc(a.nombre) + '">'; });
+    h += '</datalist></div>';
+    h += '<div class="reg-field"><label>Invertido (€)</label><input id="car-inv" type="number" min="0" step="any" placeholder="1000"></div>';
+    h += '<div class="reg-field"><label>Valor actual (€) · opcional</label><input id="car-val" type="number" min="0" step="any" placeholder="= invertido"></div>';
+    h += '<div class="reg-field"><label>Fecha</label><input id="car-fec" type="date" value="' + todayISO() + '"></div>';
+    h += '<div class="reg-field full"><label>Notas (opcional)</label><input id="car-not" type="text" placeholder="bróker, motivo…"></div>';
+    h += '</div><div class="reg-form-foot"><button class="reg-btn" onclick="carAdd()">Añadir a mi cartera</button></div></div>';
+
+    if (!pos.length) {
+      h += '<div class="reg-empty">Aún no has registrado ninguna inversión. Añade la primera arriba ⤴</div>';
+    } else {
+      h += '<div class="inv-mini-h">📋 Tus posiciones (' + pos.length + ')</div><div class="car-list">';
+      pos.slice().reverse().forEach(p => {
+        const pinv = parseFloat(p.invertido) || 0, pval = _carValor(p), ppl = pval - pinv, pppct = pinv > 0 ? ppl / pinv * 100 : 0;
+        const valAttr = (p.valorActual !== null && p.valorActual !== undefined && p.valorActual !== '') ? esc(String(p.valorActual)) : '';
+        h += '<div class="car-pos">';
+        h += '<div class="car-pos-top"><span class="car-pos-name">' + esc(p.activo) + '</span>';
+        h += '<span class="car-pos-pl ' + (ppl >= 0 ? 'reg-pos' : 'reg-neg') + '">' + (ppl >= 0 ? '+' : '') + _eur(ppl) + ' (' + _pct(pppct) + ')</span>';
+        h += '<button class="reg-trade-del" onclick="carDel(' + p.id + ')" title="Eliminar">✕</button></div>';
+        h += '<div class="car-pos-row">Invertido <b>' + _eur(pinv) + '</b> · Valor actual <input class="car-val-in" type="number" min="0" step="any" value="' + valAttr + '" placeholder="' + Math.round(pinv) + '" onchange="carSetValor(' + p.id + ', this.value)"> €';
+        if (p.fecha) h += ' · <span class="car-pos-fec">' + esc(p.fecha) + '</span>';
+        h += '</div>';
+        if (p.notas) h += '<div class="car-pos-notas">' + esc(p.notas) + '</div>';
+        h += '</div>';
+      });
+      h += '</div>';
+      h += '<div class="reg-form-foot" style="margin-top:14px"><button class="reg-btn" onclick="carExport()">⬇ Exportar</button> <button class="reg-btn" onclick="document.getElementById(\'car-file\').click()">⬆ Importar</button><input id="car-file" type="file" accept="application/json" style="display:none" onchange="carImport(this)"></div>';
+    }
+    h += '<p class="inv-warn-sm" style="margin-top:12px">El "valor actual" lo pones tú a mano (núcleo no tiene precios en vivo). Tus datos se guardan solo en este dispositivo. Contenido educativo, no es recomendación.</p>';
+    host.innerHTML = h;
+  }
+
+  window.carAdd = function () {
+    const g = id => (document.getElementById(id) || {}).value || '';
+    const act = g('car-act').trim(), inv = g('car-inv'), val = g('car-val'), fec = g('car-fec'), not = g('car-not').trim();
+    if (!act) { alert('Escribe el nombre del activo.'); return; }
+    if (!inv || parseFloat(inv) <= 0) { alert('Escribe cuánto has invertido (€).'); return; }
+    const pos = lg(K_CART, []);
+    pos.push({ id: Date.now(), activo: act, invertido: parseFloat(inv), valorActual: (val !== '' ? parseFloat(val) : null), fecha: fec, notas: not });
+    ls(K_CART, pos); renderCartera();
+  };
+  window.carDel = function (id) {
+    if (!confirm('¿Eliminar esta posición de tu cartera?')) return;
+    ls(K_CART, lg(K_CART, []).filter(p => p.id !== id)); renderCartera();
+  };
+  window.carSetValor = function (id, val) {
+    const pos = lg(K_CART, []); const p = pos.find(x => x.id === id);
+    if (p) { p.valorActual = (val !== '' ? parseFloat(val) : null); ls(K_CART, pos); renderCartera(); }
+  };
+  window.carExport = function () {
+    try {
+      const blob = new Blob([JSON.stringify(lg(K_CART, []), null, 2)], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = 'nucleo_cartera_' + todayISO() + '.json'; a.click();
+    } catch (e) { alert('No se pudo exportar.'); }
+  };
+  window.carImport = function (input) {
+    const f = input.files && input.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = function () {
+      try {
+        const arr = JSON.parse(r.result);
+        if (Array.isArray(arr)) { ls(K_CART, arr); renderCartera(); alert('Cartera importada (' + arr.length + ' posiciones).'); }
+        else alert('El archivo no tiene el formato esperado.');
+      } catch (e) { alert('No se pudo leer el archivo.'); }
+    };
+    r.readAsText(f);
+  };
+
   window.invShowTab = function (tab) {
     document.querySelectorAll('.inv-subtab').forEach(b => b.classList.toggle('active', b.dataset.inv === tab));
     document.querySelectorAll('.inv-subview').forEach(v => v.classList.remove('active'));
@@ -2768,9 +2879,11 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
     if (tab === 'catalogo') renderCatalogo();
     else if (tab === 'calculadora') renderCalculadora();
     else if (tab === 'reparto') renderReparto();
+    else if (tab === 'cartera') renderCartera();
   };
   window.invRender = function () {
     renderPerfil();
+    renderCartera();
     renderCatalogo();
     renderCalculadora();
     renderReparto();
