@@ -1436,6 +1436,9 @@
   .inv-calc-box { background: var(--bg-card2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 14px; }
   .inv-calc-modes { display: flex; gap: 6px; margin-bottom: 12px; }
   .inv-calc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
+  .inv-count { background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(37,99,235,0.05)); border: 1px solid rgba(59,130,246,0.25); border-radius: 12px; padding: 12px 16px; margin-bottom: 10px; font-size: 0.83rem; color: var(--text-sec); display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .inv-count-n { font-size: 1.5rem; font-weight: 800; color: var(--acc-blue); line-height: 1; }
+  .inv-count b { color: var(--text-pri); font-weight: 700; }
 </style>
 
 <!-- ────────────────────────── MOTOR ────────────────────────── -->
@@ -2505,7 +2508,10 @@ document.addEventListener('DOMContentLoaded', () => showSection('home'));
     if (!A || !A.activos) { host.innerHTML = '<div class="reg-empty">No se han podido cargar los activos.</div>'; return; }
     const st = _catState;
     const nCur = A.activos.filter(a => a.status === 'curado').length;
-    let h = '<div class="inv-cat-intro"><strong>' + A.activos.length + ' activos</strong> en ' + A.categorias.length + ' categorías (' + nCur + ' con histórico real). Toca uno para ver su gráfica y cuánto habrían sido 1.000 €.</div>';
+    const tabBtn = document.querySelector('.inv-subtab[data-inv="catalogo"]');
+    if (tabBtn) tabBtn.textContent = '📊 Catálogo · ' + A.activos.length;
+    let h = '<div class="inv-count"><span class="inv-count-n">' + A.activos.length + '</span> activos disponibles · <b>' + nCur + '</b> con histórico real · ' + A.categorias.length + ' categorías</div>';
+    h += '<div class="inv-cat-intro">Toca cualquier activo para ver su <b>ficha completa</b>: gráfica con rango ajustable, datos para entenderlo y su propia calculadora.</div>';
     h += '<input class="inv-search" type="text" placeholder="Buscar por nombre o ticker…" value="' + esc(st.q) + '" oninput="invCatSearch(this.value)">';
     h += '<div class="inv-chips"><span class="inv-chip' + (st.cat === 'todos' ? ' on' : '') + '" onclick="invCatFilter(\'todos\')">🗂️ Todos</span>';
     A.categorias.forEach(c => { h += '<span class="inv-chip' + (st.cat === c.id ? ' on' : '') + '" onclick="invCatFilter(\'' + c.id + '\')">' + c.emoji + ' ' + esc(c.nombre) + '</span>'; });
